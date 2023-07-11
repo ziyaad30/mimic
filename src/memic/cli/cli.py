@@ -100,19 +100,23 @@ class Scripts:
             subprocess.run(InternalCmds.open_coverage)
 
     def toolbox(self, *args):
+        """Run the demo toolbox UI."""
         from memic.cli.demo_toolbox import main
 
         main(*args)
 
     def cli(self, *args):
+        """The main command line interface from CorentinJ/Real-Time-Voice-Cloning."""
         from memic.cli.demo_cli import main
 
         main(*args)
 
     def enc(self, *args):
+        """Alias for `encoder`."""
         self.encoder(*args)
 
     def encoder(self, cmd, *args):
+        """Run a command from the encoder cli (`encoder train` or `encoder preprocess`)."""
         if cmd == "train":
             from memic.cli.encoder_train import main
             main(*args)
@@ -121,16 +125,18 @@ class Scripts:
             main(*args)
 
     def synth(self, *args):
+        """Alias for `synthesizer`."""
         self.synthesizer(*args)
 
     def synthesizer(self, cmd, *args):
+        """Run a command from the synthesizer cli (`synthesizer train` or `synthesizer preprocess`)."""
         if cmd == "preprocess":
-            self.synthesizer_preprocess(*args)
+            self._synthesizer_preprocess(*args)
         elif cmd == "train":
             from memic.cli.synthesizer_train import main
             main(*args)
 
-    def synthesizer_preprocess(self, cmd, *args):
+    def _synthesizer_preprocess(self, cmd, *args):
         if cmd == "audio":
             from memic.cli.synthesizer_preprocess_audio import main
             main(*args)
@@ -139,12 +145,15 @@ class Scripts:
             main(*args)
 
     def voc(self, *args):
+        """Alias for `vocoder`."""
         self.vocoder(*args)
 
     def vocode(self, *args):
+        """Alias for `vocoder`."""
         self.vocoder(*args)
 
     def vocoder(self, cmd, *args):
+        """Run a command from the vocoder cli (`vocoder train` or `vocoder preprocess`)."""
         if cmd == "train":
             from memic.cli.vocoder_train import main
             main(*args)
