@@ -1,3 +1,4 @@
+import re
 import sys
 from pathlib import Path
 from time import sleep
@@ -270,6 +271,9 @@ class UI(QDialog):
 
     def populate_browser(self, datasets_root: Path, recognized_datasets: List, level: int,
                          random=True):
+        self.datasets_root = datasets_root
+        self.check_filename()
+
         # Select a random dataset
         if level <= 0:
             if datasets_root is not None:
@@ -315,6 +319,24 @@ class UI(QDialog):
             utterances = [fpath.relative_to(utterances_root) for fpath in utterances]
             self.repopulate_box(self.utterance_box, utterances, random)
 
+    def check_filename(self):
+        username = self.user_name_input.text()
+        if username == "user01" and not self.datasets_root.joinpath("user01").exists():
+            other = [d for d in self.datasets_root.iterdir() if d.is_dir() and all(f.suffix == ".wav" for f in d.iterdir())]
+            # sort by most recent modified time to least recent
+            other.sort(key=lambda d: d.stat().st_mtime, reverse=True)
+            if len(other) > 0:
+                username = other[0].name
+                self.user_name_input.setText(username)
+                self.user_name_input_changed()
+
+        if self.datasets_root is not None and re.match(f"{username}@rec\d*", self.record_name_input.text()) and (self.datasets_root / username).exists():
+            print(list((self.datasets_root / username).iterdir()))
+            n = len(
+                [1 for d in (self.datasets_root / username).iterdir() if re.match(f"{username}@rec\d*\.wav", d.name)]) + 1
+            if n < 10:
+                n = f"0{n}"
+            self.record_name_input.setText(f"{username}@rec{n}")
     def browser_select_next(self):
         index = (self.utterance_box.currentIndex() + 1) % len(self.utterance_box)
         self.utterance_box.setCurrentIndex(index)
@@ -381,7 +403,7 @@ class UI(QDialog):
         self.app.processEvents()
 
     def set_loading(self, value, maximum=1):
-        self.loading_bar.setValue(value * 100)
+        self.loading_bar.setValue(int(value * 100))
         self.loading_bar.setMaximum(maximum * 100)
         self.loading_bar.setTextVisible(value != 0)
         self.app.processEvents()
@@ -427,6 +449,8 @@ class UI(QDialog):
         super().__init__(None)
         self.setWindowTitle("SV2TTS toolbox")
 
+        self.datasets_root = None
+
 
         ## Main layouts
         # Root
@@ -449,7 +473,6 @@ class UI(QDialog):
         vis_layout = QVBoxLayout()
         root_layout.addLayout(vis_layout, 1, 1, 1, 3)
 
-
         ## Projections
         # UMap
         fig, self.umap_ax = plt.subplots(figsize=(3, 3), facecolor="#F0F0F0")
@@ -459,84 +482,72 @@ class UI(QDialog):
         self.clear_button = QPushButton("Clear")
         self.projections_layout.addWidget(self.clear_button)
 
-
         ## Browser
         # Dataset, speaker and utterance selection
-        i = 0
         self.dataset_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Dataset</b>"), i, 0)
-        browser_layout.addWidget(self.dataset_box, i + 1, 0)
         self.speaker_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Speaker</b>"), i, 1)
-        browser_layout.addWidget(self.speaker_box, i + 1, 1)
         self.utterance_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Utterance</b>"), i, 2)
-        browser_layout.addWidget(self.utterance_box, i + 1, 2)
         self.browser_load_button = QPushButton("Load")
-        browser_layout.addWidget(self.browser_load_button, i + 1, 3)
-        i += 2
-
-        # Random buttons
         self.random_dataset_button = QPushButton("Random")
-        browser_layout.addWidget(self.random_dataset_button, i, 0)
         self.random_speaker_button = QPushButton("Random")
-        browser_layout.addWidget(self.random_speaker_button, i, 1)
         self.random_utterance_button = QPushButton("Random")
-        browser_layout.addWidget(self.random_utterance_button, i, 2)
         self.auto_next_checkbox = QCheckBox("Auto select next")
         self.auto_next_checkbox.setChecked(True)
-        browser_layout.addWidget(self.auto_next_checkbox, i, 3)
-        i += 1
-
-        # Utterance box
-        browser_layout.addWidget(QLabel("<b>Use embedding from:</b>"), i, 0)
         self.utterance_history = QComboBox()
-        browser_layout.addWidget(self.utterance_history, i, 1, 1, 3)
-        i += 1
-
-        # Random & next utterance buttons
         self.browser_browse_button = QPushButton("Browse")
-        browser_layout.addWidget(self.browser_browse_button, i, 0)
+
+        self.user_name_input = QLineEdit()
+        self.user_name_input.setText("user01")
+        self.user_name_input.setMaxLength(20)
+        self.user_name_input.setFixedWidth(100)
+        # add a change callback to the user name input
+        self.user_name_input.textEdited.connect(self.user_name_input_changed)
+
+        # add a numerical input for record duration. Make the number input default to 10 and have min of 5 and max of 50
+        self.record_duration_input = QSpinBox()
+        self.record_duration_input.setRange(5, 100)
+        self.record_duration_input.setValue(5)
+
         self.record_button = QPushButton("Record")
-        browser_layout.addWidget(self.record_button, i, 1)
+
+        self.record_name_input = QLineEdit()
+
+        self.record_name_input.setText("user01@rec01")
+        self.record_name_input.setMaxLength(20)
+        self.record_name_input.setFixedWidth(100)
+
         self.play_button = QPushButton("Play")
-        browser_layout.addWidget(self.play_button, i, 2)
         self.stop_button = QPushButton("Stop")
-        browser_layout.addWidget(self.stop_button, i, 3)
-        i += 1
-
-
-        # Model and audio output selection
         self.encoder_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Encoder</b>"), i, 0)
-        browser_layout.addWidget(self.encoder_box, i + 1, 0)
         self.synthesizer_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Synthesizer</b>"), i, 1)
-        browser_layout.addWidget(self.synthesizer_box, i + 1, 1)
         self.vocoder_box = QComboBox()
-        browser_layout.addWidget(QLabel("<b>Vocoder</b>"), i, 2)
-        browser_layout.addWidget(self.vocoder_box, i + 1, 2)
+        self.audio_out_devices_cb = QComboBox()
 
-        self.audio_out_devices_cb=QComboBox()
-        browser_layout.addWidget(QLabel("<b>Audio Output</b>"), i, 3)
-        browser_layout.addWidget(self.audio_out_devices_cb, i + 1, 3)
-        i += 2
-
-        #Replay & Save Audio
-        browser_layout.addWidget(QLabel("<b>Toolbox Output:</b>"), i, 0)
         self.waves_cb = QComboBox()
         self.waves_cb_model = QStringListModel()
         self.waves_cb.setModel(self.waves_cb_model)
         self.waves_cb.setToolTip("Select one of the last generated waves in this section for replaying or exporting")
-        browser_layout.addWidget(self.waves_cb, i, 1)
+
         self.replay_wav_button = QPushButton("Replay")
         self.replay_wav_button.setToolTip("Replay last generated vocoder")
-        browser_layout.addWidget(self.replay_wav_button, i, 2)
+
         self.export_wav_button = QPushButton("Export")
         self.export_wav_button.setToolTip("Save last generated vocoder audio in filesystem as a wav file")
-        browser_layout.addWidget(self.export_wav_button, i, 3)
-        i += 1
-
+        widgets = [
+            [QLabel("<b>Dataset</b>"), QLabel("<b>Speaker</b>"), QLabel("<b>Utterance</b>")],
+            [self.dataset_box, self.speaker_box, self.utterance_box, self.browser_load_button],
+            [self.random_dataset_button, self.random_speaker_button, self.random_utterance_button, self.auto_next_checkbox],
+            [QLabel("<b>Record your voice:</b>")],
+            [self.user_name_input, self.record_duration_input, self.record_button, self.record_name_input],
+            [QLabel("<b>Use embedding from:</b>")],
+            [self.utterance_history, self.browser_browse_button, self.play_button, self.stop_button],
+            [QLabel("<b>Encoder</b>"), QLabel("<b>Synthesizer</b>"), QLabel("<b>Vocoder</b>"), QLabel("<b>Audio Output</b>")],
+            [self.encoder_box, self.synthesizer_box, self.vocoder_box, self.audio_out_devices_cb],
+            [QLabel("<b>Toolbox Output:</b>"), self.waves_cb, self.replay_wav_button, self.export_wav_button]
+        ]
+        for i, row in enumerate(widgets):
+            for j, widget in enumerate(row):
+                browser_layout.addWidget(widget, i, j)
 
         ## Embed & spectrograms
         vis_layout.addStretch()
@@ -602,6 +613,13 @@ class UI(QDialog):
         ## Finalize the display
         self.reset_interface()
         self.show()
+
+    def user_name_input_changed(self):
+        t = self.record_name_input.text()
+        if "@" in t:
+            old = t.split("@")[1]
+            self.record_name_input.setText(self.user_name_input.text() + "@" + old)
+        self.check_filename()
 
     def start(self):
         self.app.exec_()
