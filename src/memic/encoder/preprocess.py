@@ -4,34 +4,32 @@ from multiprocessing import Pool
 from pathlib import Path
 
 import numpy as np
+from memic.encoder import audio
+from memic.encoder.config import anglophone_nationalites, librispeech_datasets
+from memic.encoder.params_data import partials_n_frames, sampling_rate
 from tqdm import tqdm
-
-from . import audio
-from .config import librispeech_datasets, anglophone_nationalites
-from .params_data import *
-
 
 _AUDIO_EXTENSIONS = ("wav", "flac", "m4a", "mp3")
 
 class DatasetLog:
+    """Registers metadata about the dataset in a text file.
     """
-    Registers metadata about the dataset in a text file.
-    """
+
     def __init__(self, root, name):
         self.text_file = open(Path(root, "Log_%s.txt" % name.replace("/", "_")), "w")
-        self.sample_data = dict()
+        self.sample_data = {}
 
         start_time = str(datetime.now().strftime("%A %d %B %Y at %H:%M"))
-        self.write_line("Creating dataset %s on %s" % (name, start_time))
+        self.write_line(f"Creating dataset {name} on {start_time}")
         self.write_line("-----")
         self._log_params()
 
     def _log_params(self):
-        from encoder import params_data
+        from memic.encoder import params_data
         self.write_line("Parameter values:")
         for param_name in (p for p in dir(params_data) if not p.startswith("__")):
             value = getattr(params_data, param_name)
-            self.write_line("\t%s: %s" % (param_name, value))
+            self.write_line(f"\t{param_name}: {value}")
         self.write_line("-----")
 
     def write_line(self, line):
@@ -39,7 +37,7 @@ class DatasetLog:
 
     def add_sample(self, **kwargs):
         for param_name, value in kwargs.items():
-            if not param_name in self.sample_data:
+            if param_name not in self.sample_data:
                 self.sample_data[param_name] = []
             self.sample_data[param_name].append(value)
 
@@ -47,8 +45,8 @@ class DatasetLog:
         self.write_line("Statistics:")
         for param_name, values in self.sample_data.items():
             self.write_line("\t%s:" % param_name)
-            self.write_line("\t\tmin %.3f, max %.3f" % (np.min(values), np.max(values)))
-            self.write_line("\t\tmean %.3f, median %.3f" % (np.mean(values), np.median(values)))
+            self.write_line(f"\t\tmin {np.min(values):.3f}, max {np.max(values):.3f}")
+            self.write_line(f"\t\tmean {np.mean(values):.3f}, median {np.median(values):.3f}")
         self.write_line("-----")
         end_time = str(datetime.now().strftime("%A %d %B %Y at %H:%M"))
         self.write_line("Finished on %s" % end_time)
@@ -107,7 +105,7 @@ def _preprocess_speaker(speaker_dir: Path, datasets_root: Path, out_dir: Path, s
 
             out_fpath = speaker_out_dir.joinpath(out_fname)
             np.save(out_fpath, frames)
-            sources_file.write("%s,%s\n" % (out_fname, in_fpath))
+            sources_file.write(f"{out_fname},{in_fpath}\n")
             audio_durs.append(len(wav) / sampling_rate)
 
     sources_file.close()

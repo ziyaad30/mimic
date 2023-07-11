@@ -4,9 +4,7 @@ from time import perf_counter as timer
 import numpy as np
 import umap
 import visdom
-
-from ..encoder.data_objects.speaker_verification_dataset import SpeakerVerificationDataset
-
+from memic.encoder.data_objects.speaker_verification_dataset import SpeakerVerificationDataset
 
 colormap = np.array([
     [76, 255, 0],
@@ -45,13 +43,13 @@ class Visualizations:
         if env_name is None:
             self.env_name = now
         else:
-            self.env_name = "%s (%s)" % (env_name, now)
+            self.env_name = f"{env_name} ({now})"
 
         # Connect to visdom and open the corresponding window in the browser
         try:
             self.vis = visdom.Visdom(server, env=self.env_name, raise_exceptions=True)
         except ConnectionError:
-            raise Exception("No visdom server detected. Run the command \"visdom\" in your CLI to "
+            raise Exception('No visdom server detected. Run the command "visdom" in your CLI to '
                             "start it.")
         # webbrowser.open("http://localhost:8097/env/" + self.env_name)
 
@@ -66,16 +64,15 @@ class Visualizations:
     def log_params(self):
         if self.disabled:
             return
-        from encoder import params_data
-        from encoder import params_model
+        from memic.encoder import params_data, params_model
         param_string = "<b>Model parameters</b>:<br>"
         for param_name in (p for p in dir(params_model) if not p.startswith("__")):
             value = getattr(params_model, param_name)
-            param_string += "\t%s: %s<br>" % (param_name, value)
+            param_string += f"\t{param_name}: {value}<br>"
         param_string += "<b>Data parameters</b>:<br>"
         for param_name in (p for p in dir(params_data) if not p.startswith("__")):
             value = getattr(params_data, param_name)
-            param_string += "\t%s: %s<br>" % (param_name, value)
+            param_string += f"\t{param_name}: {value}<br>"
         self.vis.text(param_string, opts={"title": "Parameters"})
 
     def log_dataset(self, dataset: SpeakerVerificationDataset):
@@ -92,7 +89,7 @@ class Visualizations:
             return
         implementation_string = ""
         for param, value in params.items():
-            implementation_string += "<b>%s</b>: %s\n" % (param, value)
+            implementation_string += f"<b>{param}</b>: {value}\n"
             implementation_string = implementation_string.replace("\n", "<br>")
         self.implementation_string = implementation_string
         self.implementation_win = self.vis.text(
@@ -122,24 +119,24 @@ class Visualizations:
                 [step],
                 win=self.loss_win,
                 update="append" if self.loss_win else None,
-                opts=dict(
-                    legend=["Avg. loss"],
-                    xlabel="Step",
-                    ylabel="Loss",
-                    title="Loss",
-                )
+                opts={
+                    "legend": ["Avg. loss"],
+                    "xlabel": "Step",
+                    "ylabel": "Loss",
+                    "title": "Loss",
+                }
             )
             self.eer_win = self.vis.line(
                 [np.mean(self.eers)],
                 [step],
                 win=self.eer_win,
                 update="append" if self.eer_win else None,
-                opts=dict(
-                    legend=["Avg. EER"],
-                    xlabel="Step",
-                    ylabel="EER",
-                    title="Equal error rate"
-                )
+                opts={
+                    "legend": ["Avg. EER"],
+                    "xlabel": "Step",
+                    "ylabel": "EER",
+                    "title": "Equal error rate"
+                }
             )
             if self.implementation_win is not None:
                 self.vis.text(

@@ -1,6 +1,5 @@
 import struct
 from pathlib import Path
-from typing import Optional, Union
 from warnings import warn
 
 import librosa
@@ -21,8 +20,8 @@ from .params_data import (
 
 try:
     import webrtcvad
-except:
-    warn("Unable to import 'webrtcvad'. This package enables noise removal and is recommended.")
+except ImportError:
+    warn("Unable to import 'webrtcvad'. This package enables noise removal and is recommended.")  # noqa: B028
     webrtcvad=None
 
 int16_max = (2 ** 15) - 1
@@ -32,8 +31,9 @@ def preprocess_wav(fpath_or_wav: str | Path | np.ndarray,
                    source_sr: int | None = None,
                    normalize: bool | None = True,
                    trim_silence: bool | None = True):
-    """Applies the preprocessing operations used in training the Speaker Encoder to a waveform
-    either on disk or in memory. The waveform will be resampled to match the data hyperparameters.
+    """Applies the preprocessing operations used in training the Speaker Encoder to a waveform either on disk or in memory.
+
+     The waveform will be resampled to match the data hyperparameters.
 
     :param fpath_or_wav: either a filepath to an audio file (many extensions are supported, not
     just .wav), either the waveform as a numpy array of floats.
@@ -63,6 +63,7 @@ def preprocess_wav(fpath_or_wav: str | Path | np.ndarray,
 
 def wav_to_mel_spectrogram(wav):
     """Derives a mel spectrogram ready to be used by the encoder from a preprocessed audio waveform.
+
     Note: this not a log-mel spectrogram.
     """
     frames = librosa.feature.melspectrogram(
@@ -76,8 +77,7 @@ def wav_to_mel_spectrogram(wav):
 
 
 def trim_long_silences(wav):
-    """Ensures that segments without voice in the waveform remain no longer than a
-    threshold determined by the VAD parameters in params.py.
+    """Ensures that segments without voice in the waveform remain no longer than a= threshold determined by the VAD parameters in params.py.
 
     :param wav: the raw waveform as a numpy array of floats
     :return: the same waveform with silences trimmed away (length <= original wav length)
@@ -117,10 +117,10 @@ def trim_long_silences(wav):
     return wav[audio_mask is True]
 
 
-def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False):
+def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False):  # noqa: N803
     if increase_only and decrease_only:
         raise ValueError("Both increase only and decrease only are set")
-    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))
+    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))  # noqa: N806
     if (dBFS_change < 0 and increase_only) or (dBFS_change > 0 and decrease_only):
         return wav
     return wav * (10 ** (dBFS_change / 20))

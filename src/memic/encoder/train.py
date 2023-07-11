@@ -1,12 +1,11 @@
 from pathlib import Path
 
 import torch
-
-from .data_objects import SpeakerVerificationDataLoader, SpeakerVerificationDataset
-from .model import SpeakerEncoder
-from .params_model import *
-from .visualizations import Visualizations
-from ..utils.profiler import Profiler
+from memic.encoder.data_objects import SpeakerVerificationDataLoader, SpeakerVerificationDataset
+from memic.encoder.model import SpeakerEncoder
+from memic.encoder.params_model import learning_rate_init, speakers_per_batch, utterances_per_speaker
+from memic.encoder.visualizations import Visualizations
+from memic.utils.profiler import Profiler
 
 
 def sync(device: torch.device):
@@ -47,14 +46,14 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
     # Load any existing model
     if not force_restart:
         if state_fpath.exists():
-            print("Found existing model \"%s\", loading it and resuming training." % run_id)
+            print('Found existing model "%s", loading it and resuming training.' % run_id)
             checkpoint = torch.load(state_fpath)
             init_step = checkpoint["step"]
             model.load_state_dict(checkpoint["model_state"])
             optimizer.load_state_dict(checkpoint["optimizer_state"])
             optimizer.param_groups[0]["lr"] = learning_rate_init
         else:
-            print("No model \"%s\" found, starting training from scratch." % run_id)
+            print('No model "%s" found, starting training from scratch.' % run_id)
     else:
         print("Starting the training from scratch.")
     model.train()

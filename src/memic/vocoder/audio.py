@@ -1,9 +1,10 @@
 import math
-import numpy as np
+
 import librosa
-import vocoder.hparams as hp
-from scipy.signal import lfilter
+import memic.vocoder.hparams as hp
+import numpy as np
 import soundfile as sf
+from scipy.signal import lfilter
 
 
 def label_2_float(x, bits) :
@@ -100,7 +101,7 @@ def encode_mu_law(x, mu) :
 
 
 def decode_mu_law(y, mu, from_labels=True) :
-    if from_labels: 
+    if from_labels:
         y = label_2_float(y, math.log2(mu))
     mu = mu - 1
     x = np.sign(y) / mu * ((1 + mu) ** np.abs(y) - 1)

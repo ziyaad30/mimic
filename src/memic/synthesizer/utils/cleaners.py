@@ -1,5 +1,4 @@
-"""
-Cleaners are transformations that run over the input text at both training and eval time.
+"""Cleaners are transformations that run over the input text at both training and eval time.
 
 Cleaners can be selected by passing a comma-delimited list of cleaner names as the "cleaners"
 hyperparameter. Some cleaners are English-specific. You"ll typically want to use:
@@ -10,9 +9,9 @@ hyperparameter. Some cleaners are English-specific. You"ll typically want to use
      the symbols in symbols.py to match your data).
 """
 import re
-from unidecode import unidecode
-from synthesizer.utils.numbers import normalize_numbers
 
+from memic.synthesizer.utils.numbers import normalize_numbers
+from unidecode import unidecode
 
 # Regular expression matching whitespace:
 _whitespace_re = re.compile(r"\s+")
@@ -51,7 +50,7 @@ def expand_numbers(text):
 
 
 def lowercase(text):
-    """lowercase input tokens."""
+    """Lowercase input tokens."""
     return text.lower()
 
 

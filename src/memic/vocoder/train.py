@@ -4,15 +4,14 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
+import memic.vocoder.hparams as hp
+from memic.vocoder.display import simple_table, stream
+from memic.vocoder.distribution import discretized_mix_logistic_loss
+from memic.vocoder.gen_wavernn import gen_testset
+from memic.vocoder.models.fatchord_version import WaveRNN
+from memic.vocoder.vocoder_dataset import memic.vocoderDataset, collate_vocoder
 from torch import optim
 from torch.utils.data import DataLoader
-
-import vocoder.hparams as hp
-from vocoder.display import stream, simple_table
-from vocoder.distribution import discretized_mix_logistic_loss
-from vocoder.gen_wavernn import gen_testset
-from vocoder.models.fatchord_version import WaveRNN
-from vocoder.vocoder_dataset import VocoderDataset, collate_vocoder
 
 
 def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_truth: bool, save_every: int,
@@ -67,9 +66,9 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
     test_loader = DataLoader(dataset, batch_size=1, shuffle=True)
 
     # Begin the training
-    simple_table([('Batch size', hp.voc_batch_size),
-                  ('LR', hp.voc_lr),
-                  ('Sequence Len', hp.voc_seq_len)])
+    simple_table([("Batch size", hp.voc_batch_size),
+                  ("LR", hp.voc_lr),
+                  ("Sequence Len", hp.voc_seq_len)])
 
     for epoch in range(1, 350):
         data_loader = DataLoader(dataset, hp.voc_batch_size, shuffle=True, num_workers=2, collate_fn=collate_vocoder)
@@ -82,9 +81,9 @@ def train(run_id: str, syn_dir: Path, voc_dir: Path, models_dir: Path, ground_tr
 
             # Forward pass
             y_hat = model(x, m)
-            if model.mode == 'RAW':
+            if model.mode == "RAW":
                 y_hat = y_hat.transpose(1, 2).unsqueeze(-1)
-            elif model.mode == 'MOL':
+            elif model.mode == "MOL":
                 y = y.float()
             y = y.unsqueeze(-1)
 

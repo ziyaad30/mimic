@@ -1,13 +1,14 @@
-from multiprocessing.pool import Pool
-from synthesizer import audio
 from functools import partial
 from itertools import chain
-from encoder import inference as encoder
+from multiprocessing.pool import Pool
 from pathlib import Path
-from utils import logmmse
-from tqdm import tqdm
-import numpy as np
+
 import librosa
+import numpy as np
+from memic.encoder import inference as encoder
+from memic.utils import logmmse
+from memic.synthesizer import audio
+from tqdm import tqdm
 
 
 def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
@@ -74,8 +75,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                         text_fpath = wav_fpath.with_suffix(".normalized.txt")
                         assert text_fpath.exists()
                     with text_fpath.open("r") as text_file:
-                        text = "".join([line for line in text_file])
-                        text = text.replace("\"", "")
+                        text = "".join(list(text_file))
+                        text = text.replace('"', "")
                         text = text.strip()
 
                     # Process the utterance
@@ -96,8 +97,8 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
             for wav_fname, words, end_times in alignments:
                 wav_fpath = book_dir.joinpath(wav_fname + ".flac")
                 assert wav_fpath.exists()
-                words = words.replace("\"", "").split(",")
-                end_times = list(map(float, end_times.replace("\"", "").split(",")))
+                words = words.replace('"', "").split(",")
+                end_times = list(map(float, end_times.replace('"', "").split(",")))
 
                 # Process each sub-utterance
                 wavs, texts = split_on_silences(wav_fpath, words, end_times, hparams)

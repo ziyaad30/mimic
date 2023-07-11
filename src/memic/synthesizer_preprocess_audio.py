@@ -1,9 +1,9 @@
-from synthesizer.preprocess import preprocess_dataset
-from synthesizer.hparams import hparams
-from utils.argutils import print_args
-from pathlib import Path
 import argparse
+from pathlib import Path
 
+from memic.synthesizer.hparams import hparams
+from memic.synthesizer.preprocess import preprocess_dataset
+from memic.utils.argutils import print_args
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

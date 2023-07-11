@@ -2,11 +2,9 @@ import argparse
 import os
 from pathlib import Path
 
-from synthesizer.hparams import hparams
-from synthesizer.synthesize import run_synthesis
-from utils.argutils import print_args
-
-
+from memic.synthesizer.hparams import hparams
+from memic.synthesizer.synthesize import run_synthesis
+from memic.utils.argutils import print_args
 
 if __name__ == "__main__":
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):

@@ -6,16 +6,14 @@ import librosa
 import numpy as np
 import soundfile as sf
 import torch
+from memic.encoder import inference as encoder
+from memic.encoder.params_model import model_embedding_size as speaker_embedding_size
+from memic.synthesizer.inference import Synthesizer
+from memic.utils.argutils import print_args
+from memic.utils.default_models import ensure_default_models
+from memic.vocoder import inference as vocoder
 
-from encoder import inference as encoder
-from encoder.params_model import model_embedding_size as speaker_embedding_size
-from synthesizer.inference import Synthesizer
-from utils.argutils import print_args
-from utils.default_models import ensure_default_models
-from vocoder import inference as vocoder
-
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -98,7 +96,8 @@ if __name__ == '__main__':
     mel = np.concatenate(mels, axis=1)
     # The vocoder can take a callback function to display the generation. More on that later. For
     # now we'll simply hide it like this:
-    no_action = lambda *args: None
+    def no_action(*args):
+        return None
     print("\tTesting the vocoder...")
     # For the sake of making this test short, we'll pass a short target length. The target length
     # is the length of the wav segments that are processed in parallel. E.g. for audio sampled
@@ -123,7 +122,7 @@ if __name__ == '__main__':
             # Get the reference audio filepath
             message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " \
                       "wav, m4a, flac, ...):\n"
-            in_fpath = Path(input(message).replace("\"", "").replace("\'", ""))
+            in_fpath = Path(input(message).replace('"', "").replace("\'", ""))
 
             ## Computing the embedding
             # First, we load the wav using the function that the speaker encoder provides. This is
@@ -191,7 +190,7 @@ if __name__ == '__main__':
                     sd.play(generated_wav, synthesizer.sample_rate)
                 except sd.PortAudioError as e:
                     print("\nCaught exception: %s" % repr(e))
-                    print("Continuing without audio playback. Suppress this message with the \"--no_sound\" flag.\n")
+                    print('Continuing without audio playback. Suppress this message with the "--no_sound" flag.\n')
                 except:
                     raise
 

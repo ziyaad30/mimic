@@ -1,17 +1,16 @@
 import sys
+import time
 import traceback
 from pathlib import Path
-import time
 
-from scipy.io.wavfile import write, read
 import numpy as np
 import torch
-
-from encoder import inference as encoder
-from synthesizer.inference import Synthesizer
-from .ui import UI
-from .utterance import Utterance
-from vocoder import inference as vocoder
+from memic.encoder import inference as encoder
+from memic.synthesizer.inference import Synthesizer
+from memic.toolbox.ui import UI
+from memic.toolbox.utterance import Utterance
+from memic.vocoder import inference as vocoder
+from scipy.io.wavfile import read, write
 
 # Maximum of generated wavs to keep on memory
 MAX_WAVS = 15
@@ -41,9 +40,12 @@ recognized_datasets = [
     "VCTK-Corpus/wav48",
 ]
 
+
 class Toolbox:
     def __init__(self, datasets_root: Path, models_dir: Path, seed: int=None):
         sys.excepthook = self.excepthook
+        if not datasets_root.exists():
+            datasets_root.mkdir()
         self.datasets_root = datasets_root
         self.utterances = set()
         self.current_generated = (None, None, None, None) # speaker_name, spec, breaks, wav
@@ -74,9 +76,8 @@ class Toolbox:
     def setup_events(self):
         # Dataset, speaker and utterance selection
         self.ui.browser_load_button.clicked.connect(lambda: self.load_from_browser())
-        random_func = lambda level: lambda: self.ui.populate_browser(self.datasets_root,
-                                                                     recognized_datasets,
-                                                                     level)
+        def random_func(level):
+            return lambda: self.ui.populate_browser(self.datasets_root, recognized_datasets, level)
         self.ui.random_dataset_button.clicked.connect(random_func(0))
         self.ui.random_speaker_button.clicked.connect(random_func(1))
         self.ui.random_utterance_button.clicked.connect(random_func(2))
@@ -91,11 +92,14 @@ class Toolbox:
         self.ui.vocoder_box.currentIndexChanged.connect(self.init_vocoder)
 
         # Utterance selection
-        func = lambda: self.load_from_browser(self.ui.browse_file())
+        def func():
+            return self.load_from_browser(self.ui.browse_file())
         self.ui.browser_browse_button.clicked.connect(func)
-        func = lambda: self.ui.draw_utterance(self.ui.selected_utterance, "current")
+        def func():
+            return self.ui.draw_utterance(self.ui.selected_utterance, "current")
         self.ui.utterance_history.currentIndexChanged.connect(func)
-        func = lambda: self.ui.play(self.ui.selected_utterance.wav, Synthesizer.sample_rate)
+        def func():
+            return self.ui.play(self.ui.selected_utterance.wav, Synthesizer.sample_rate)
         self.ui.play_button.clicked.connect(func)
         self.ui.stop_button.clicked.connect(self.ui.stop)
         self.ui.record_button.clicked.connect(self.record)
@@ -104,14 +108,17 @@ class Toolbox:
         self.ui.setup_audio_devices(Synthesizer.sample_rate)
 
         #Wav playback & save
-        func = lambda: self.replay_last_wav()
+        def func():
+            return self.replay_last_wav()
         self.ui.replay_wav_button.clicked.connect(func)
-        func = lambda: self.export_current_wave()
+        def func():
+            return self.export_current_wave()
         self.ui.export_wav_button.clicked.connect(func)
         self.ui.waves_cb.currentIndexChanged.connect(self.set_current_wav)
 
         # Generation
-        func = lambda: self.synthesize() or self.vocode()
+        def func():
+            return self.synthesize() or self.vocode()
         self.ui.generate_button.clicked.connect(func)
         self.ui.synthesize_button.clicked.connect(self.synthesize)
         self.ui.vocode_button.clicked.connect(self.vocode)
@@ -141,7 +148,7 @@ class Toolbox:
                          self.ui.current_speaker_name,
                          self.ui.current_utterance_name)
             name = str(fpath.relative_to(self.datasets_root))
-            speaker_name = self.ui.current_dataset_name + '_' + self.ui.current_speaker_name
+            speaker_name = self.ui.current_dataset_name + "_" + self.ui.current_speaker_name
 
             # Select the next utterance
             if self.ui.auto_next_checkbox.isChecked():

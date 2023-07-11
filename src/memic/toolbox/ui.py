@@ -2,7 +2,6 @@ import re
 import sys
 from pathlib import Path
 from time import sleep
-from typing import List, Set
 from warnings import filterwarnings, warn
 
 import matplotlib.pyplot as plt
@@ -10,12 +9,11 @@ import numpy as np
 import sounddevice as sd
 import soundfile as sf
 import umap
-from PyQt5.QtCore import Qt, QStringListModel
-from PyQt5.QtWidgets import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
-from encoder.inference import plot_embedding_as_heatmap
-from toolbox.utterance import Utterance
+from memic.encoder.inference import plot_embedding_as_heatmap
+from memic.toolbox.utterance import Utterance
+from PyQt5.QtCore import QStringListModel, Qt
+from PyQt5.QtWidgets import *  # noqa: F403
 
 filterwarnings("ignore")
 
@@ -35,20 +33,17 @@ colormap = np.array([
     [0, 0, 0],
     [183, 183, 183],
     [76, 255, 0],
-], dtype=np.float) / 255
+], dtype=np.float64) / 255
 
-default_text = \
-    "Welcome to the toolbox! To begin, load an utterance from your datasets or record one " \
-    "yourself.\nOnce its embedding has been created, you can synthesize any text written here.\n" \
-    "The synthesizer expects to generate " \
-    "outputs that are somewhere between 5 and 12 seconds.\nTo mark breaks, write a new line. " \
-    "Each line will be treated separately.\nThen, they are joined together to make the final " \
-    "spectrogram. Use the vocoder to generate audio.\nThe vocoder generates almost in constant " \
-    "time, so it will be more time efficient for longer inputs like this one.\nOn the left you " \
-    "have the embedding projections. Load or record more utterances to see them.\nIf you have " \
-    "at least 2 or 3 utterances from a same speaker, a cluster should form.\nSynthesized " \
-    "utterances are of the same color as the speaker whose voice was used, but they're " \
-    "represented with a cross."
+default_text = """Welcome to the toolbox! To begin, load an utterance from your datasets or record one
+The synthesizer expects to generate outputs that are somewhere between 5 and 12 seconds.
+To mark breaks, write a new line. Each line will be treated separately.
+Then, they are joined together to make the final spectrogram. Use the vocoder to generate audio.
+The vocoder generates almost in constant time, so it will be more time efficient for longer inputs like this one.
+On the left you have the embedding projections. Load or record more utterances to see them.
+If you have at least 2 or 3 utterances from a same speaker, a cluster should form.
+Synthesized utterances are of the same color as the speaker whose voice was used, but they're represented with a cross.
+"""
 
 
 class UI(QDialog):
@@ -95,7 +90,7 @@ class UI(QDialog):
         if which != "current":
             self.vocode_button.setDisabled(spec is None)
 
-    def draw_umap_projections(self, utterances: Set[Utterance]):
+    def draw_umap_projections(self, utterances: set[Utterance]):
         self.umap_ax.clear()
 
         speakers = np.unique([u.speaker_name for u in utterances])
@@ -106,7 +101,7 @@ class UI(QDialog):
         if len(utterances) < self.min_umap_points:
             self.umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
                               (self.min_umap_points - len(utterances)),
-                              horizontalalignment='center', fontsize=15)
+                              horizontalalignment="center", fontsize=15)
             self.umap_ax.set_title("")
 
         # Compute the projections
@@ -127,7 +122,7 @@ class UI(QDialog):
                 speakers_done.add(utterance.speaker_name)
                 self.umap_ax.scatter(projection[0], projection[1], c=[color], marker=mark,
                                      label=label)
-            self.umap_ax.legend(prop={'size': 10})
+            self.umap_ax.legend(prop={"size": 10})
 
         # Draw the plot
         self.umap_ax.set_aspect("equal", "datalim")
@@ -166,7 +161,7 @@ class UI(QDialog):
                 output_devices.append(device["name"])
             except Exception as e:
                 # Log a warning only if the device is not an input
-                if not device["name"] in input_devices:
+                if device["name"] not in input_devices:
                     warn("Unsupported output device %s for the sample rate: %d \nError: %s" % (device["name"], sample_rate, str(e)))
 
         if len(input_devices) == 0:
@@ -255,9 +250,8 @@ class UI(QDialog):
 
     @staticmethod
     def repopulate_box(box, items, random=False):
-        """
-        Resets a box and adds a list of items. Pass a list of (item, data) pairs instead to join
-        data to the items
+        """Resets a box and adds a list of items. Pass a list of (item, data) pairs instead to join
+        data to the items.
         """
         box.blockSignals(True)
         box.clear()
@@ -269,7 +263,7 @@ class UI(QDialog):
         box.setDisabled(len(items) == 0)
         box.blockSignals(False)
 
-    def populate_browser(self, datasets_root: Path, recognized_datasets: List, level: int,
+    def populate_browser(self, datasets_root: Path, recognized_datasets: list, level: int,
                          random=True):
         self.datasets_root = datasets_root
         self.check_filename()
@@ -314,7 +308,7 @@ class UI(QDialog):
                 self.current_speaker_name
             )
             utterances = []
-            for extension in ['mp3', 'flac', 'wav', 'm4a']:
+            for extension in ["mp3", "flac", "wav", "m4a"]:
                 utterances.extend(Path(utterances_root).glob("**/*.%s" % extension))
             utterances = [fpath.relative_to(utterances_root) for fpath in utterances]
             self.repopulate_box(self.utterance_box, utterances, random)
@@ -330,10 +324,10 @@ class UI(QDialog):
                 self.user_name_input.setText(username)
                 self.user_name_input_changed()
 
-        if self.datasets_root is not None and re.match(f"{username}@rec\d*", self.record_name_input.text()) and (self.datasets_root / username).exists():
+        if self.datasets_root is not None and re.match(rf"{username}@rec\d*", self.record_name_input.text()) and (self.datasets_root / username).exists():
             print(list((self.datasets_root / username).iterdir()))
             n = len(
-                [1 for d in (self.datasets_root / username).iterdir() if re.match(f"{username}@rec\d*\.wav", d.name)]) + 1
+                [1 for d in (self.datasets_root / username).iterdir() if re.match(rf"{username}@rec\d*\.wav", d.name)]) + 1
             if n < 10:
                 n = f"0{n}"
             self.record_name_input.setText(f"{username}@rec{n}")
@@ -397,7 +391,7 @@ class UI(QDialog):
             self.logs[-1] += line
         elif mode == "overwrite":
             self.logs[-1] = line
-        log_text = '\n'.join(self.logs)
+        log_text = "\n".join(self.logs)
 
         self.log_window.setText(log_text)
         self.app.processEvents()

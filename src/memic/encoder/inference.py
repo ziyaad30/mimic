@@ -1,19 +1,20 @@
-from .params_data import partials_n_frames, sampling_rate, mel_window_step
-from .model import SpeakerEncoder
-from .audio import preprocess_wav   # We want to expose this function from here
-from matplotlib import cm
-from . import audio
 from pathlib import Path
+
 import numpy as np
 import torch
+from matplotlib import cm
+from memic.encoder.audio import preprocess_wav  # We want to expose this function from here
+from memic.encoder.model import SpeakerEncoder
+from memic.encoder.params_data import mel_window_step, partials_n_frames, sampling_rate
 
-_model = None # type: SpeakerEncoder
-_device = None # type: torch.device
+from . import audio
+
+_model = None  # type: SpeakerEncoder
+_device = None  # type: torch.device
 
 
 def load_model(weights_fpath: Path, device=None):
-    """
-    Loads the model in memory. If this function is not explicitely called, it will be run on the
+    """Loads the model in memory. If this function is not explicitely called, it will be run on the
     first call to embed_frames() with the default weights file.
 
     :param weights_fpath: the path to saved model weights.
@@ -32,7 +33,7 @@ def load_model(weights_fpath: Path, device=None):
     checkpoint = torch.load(weights_fpath, _device)
     _model.load_state_dict(checkpoint["model_state"])
     _model.eval()
-    print("Loaded encoder \"%s\" trained to step %d" % (weights_fpath.name, checkpoint["step"]))
+    print('Loaded encoder "%s" trained to step %d' % (weights_fpath.name, checkpoint["step"]))
 
 
 def is_loaded():
@@ -40,8 +41,7 @@ def is_loaded():
 
 
 def embed_frames_batch(frames_batch):
-    """
-    Computes embeddings for a batch of mel spectrogram.
+    """Computes embeddings for a batch of mel spectrogram.
 
     :param frames_batch: a batch mel of spectrogram as a numpy array of float32 of shape
     (batch_size, n_frames, n_channels)
@@ -57,7 +57,8 @@ def embed_frames_batch(frames_batch):
 
 def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_frames,
                            min_pad_coverage=0.75, overlap=0.5):
-    """
+    """Computes where to split an utterance waveform and its corresponding mel spectrogram.
+
     Computes where to split an utterance waveform and its corresponding mel spectrogram to obtain
     partial utterances of <partial_utterance_n_frames> each. Both the waveform and the mel
     spectrogram slices are returned, so as to make each partial utterance waveform correspond to
@@ -81,10 +82,12 @@ def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_fram
     respectively the waveform and the mel spectrogram with these slices to obtain the partial
     utterances.
     """
-    assert 0 <= overlap < 1
-    assert 0 < min_pad_coverage <= 1
+    if not (0 <= overlap < 1):
+        raise ValueError(f"overlap must be >= 0 and < 1 (was {overlap})")
+    if not (0 <= min_pad_coverage <= 1):
+        raise ValueError(f"min_pad_coverage must be in [0, 1] (was {min_pad_coverage})")
 
-    samples_per_frame = int((sampling_rate * mel_window_step / 1000))
+    samples_per_frame = int(sampling_rate * mel_window_step / 1000)
     n_frames = int(np.ceil((n_samples + 1) / samples_per_frame))
     frame_step = max(int(np.round(partial_utterance_n_frames * (1 - overlap))), 1)
 
@@ -108,8 +111,7 @@ def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_fram
 
 
 def embed_utterance(wav, using_partials=True, return_partials=False, **kwargs):
-    """
-    Computes an embedding for a single utterance.
+    """Computes an embedding for a single utterance.
 
     # TODO: handle multiple wavs to benefit from batching on GPU
     :param wav: a preprocessed (see audio.py) utterance waveform as a numpy array of float32
@@ -155,7 +157,7 @@ def embed_utterance(wav, using_partials=True, return_partials=False, **kwargs):
 
 
 def embed_speaker(wavs, **kwargs):
-    raise NotImplemented()
+    raise NotImplementedError()
 
 
 def plot_embedding_as_heatmap(embed, ax=None, title="", shape=None, color_range=(0, 0.30)):

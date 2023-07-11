@@ -44,6 +44,8 @@ ignore = [
     "D200",  # This is a flake8-docstrings warning. It warns about one-line docstring should fit on one line with quotes.
     "D401",  # This is a flake8-docstrings warning. It warns about imperative mood usage in docstrings (e.g., use "Return" instead of "Returns").
     "F401",  # This is a flake8 warning. It warns about module imported but unused.
+    "S602", # This is a bandit warning. It warns about subprocess call with shell=True.
+    "S603",  # This is a bandit warning. It warns about subprocess call with shell=True.
     "TRY003",  # This is a flake8-tryhard warning. It warns about specifying messages outside exception class. It's considered overly strict, especially for ValueError.
 ]
 

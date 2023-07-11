@@ -1,8 +1,8 @@
-from synthesizer.preprocess import create_embeddings
-from utils.argutils import print_args
-from pathlib import Path
 import argparse
+from pathlib import Path
 
+from memic.synthesizer.preprocess import create_embeddings
+from memic.utils.argutils import print_args
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

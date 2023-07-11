@@ -1,8 +1,8 @@
-from encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2
-from utils.argutils import print_args
-from pathlib import Path
 import argparse
+from pathlib import Path
 
+from memic.encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2
+from memic.utils.argutils import print_args
 
 if __name__ == "__main__":
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):

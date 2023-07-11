@@ -2,12 +2,12 @@ import argparse
 import os
 from pathlib import Path
 
-from toolbox import Toolbox
-from utils.argutils import print_args
-from utils.default_models import ensure_default_models
+from memic.toolbox import Toolbox
+from memic.utils.argutils import print_args
+from memic.utils.default_models import ensure_default_models
 
 
-if __name__ == '__main__':
+def main(*args):
     parser = argparse.ArgumentParser(
         description="Runs the toolbox.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -15,14 +15,14 @@ if __name__ == '__main__':
 
     parser.add_argument("-d", "--datasets_root", type=Path, help= \
         "Path to the directory containing your datasets. See toolbox/__init__.py for a list of "
-        "supported datasets.", default=None)
+        "supported datasets.", default="datasets")
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models",
                         help="Directory containing all saved models")
     parser.add_argument("--cpu", action="store_true", help=\
         "If True, all inference will be done on CPU")
     parser.add_argument("--seed", type=int, default=None, help=\
         "Optional random number seed value to make toolbox deterministic.")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     arg_dict = vars(args)
     print_args(args, parser)
 
@@ -35,3 +35,7 @@ if __name__ == '__main__':
 
     # Launch the toolbox
     Toolbox(**arg_dict)
+
+
+if __name__ == "__main__":
+    main()

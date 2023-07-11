@@ -4,14 +4,13 @@ from pathlib import Path
 
 import numpy as np
 import torch
+from memic.synthesizer.hparams import hparams_debug_string
+from memic.synthesizer.models.tacotron import Tacotron
+from memic.synthesizer.synthesizer_dataset import SynthesizerDataset, collate_synthesizer
+from memic.synthesizer.utils import data_parallel_workaround
+from memic.synthesizer.utils.symbols import symbols
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-
-from synthesizer.hparams import hparams_debug_string
-from synthesizer.models.tacotron import Tacotron
-from synthesizer.synthesizer_dataset import SynthesizerDataset, collate_synthesizer
-from synthesizer.utils import data_parallel_workaround
-from synthesizer.utils.symbols import symbols
 
 
 def run_synthesis(in_dir: Path, out_dir: Path, syn_model_fpath: Path, hparams):

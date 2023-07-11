@@ -101,6 +101,10 @@ class Scripts:
             subprocess.run(InternalCmds.coverage_html)
             subprocess.run(InternalCmds.open_coverage)
 
+    def toolbox(self, *args):
+        from memic.demo_toolbox import main
+        main(*args)
+
     def _run(self, cmd, *args):
         """Run a command either from a method in this class or from a command in Cmds class."""
         if hasattr(self, cmd):

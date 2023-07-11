@@ -1,8 +1,8 @@
-from utils.argutils import print_args
-from encoder.train import train
-from pathlib import Path
 import argparse
+from pathlib import Path
 
+from memic.encoder.train import train
+from memic.utils.argutils import print_args
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
