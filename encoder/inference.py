@@ -170,7 +170,7 @@ def plot_embedding_as_heatmap(embed, ax=None, title="", shape=None, color_range=
 
     cmap = cm.get_cmap()
     mappable = ax.imshow(embed, cmap=cmap)
-    cbar = plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
+    plt.colorbar(mappable, ax=ax, fraction=0.046, pad=0.04)
     sm = cm.ScalarMappable(cmap=cmap)
     sm.set_clim(*color_range)
 

@@ -1,5 +1,6 @@
 import random
 
+
 class RandomCycler:
     """
     Creates an internal copy of a sequence and allows access to its items in a constrained random 
