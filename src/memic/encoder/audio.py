@@ -22,15 +22,14 @@ try:
     import webrtcvad
 except ImportError:
     warn("Unable to import 'webrtcvad'. This package enables noise removal and is recommended.")  # noqa: B028
-    webrtcvad=None
+    webrtcvad = None
 
-int16_max = (2 ** 15) - 1
+int16_max = (2**15) - 1
 
 
-def preprocess_wav(fpath_or_wav: str | Path | np.ndarray,
-                   source_sr: int | None = None,
-                   normalize: bool | None = True,
-                   trim_silence: bool | None = True):
+def preprocess_wav(
+    fpath_or_wav: str | Path | np.ndarray, source_sr: int | None = None, normalize: bool | None = True, trim_silence: bool | None = True
+):
     """Applies the preprocessing operations used in training the Speaker Encoder to a waveform either on disk or in memory.
 
      The waveform will be resampled to match the data hyperparameters.
@@ -71,7 +70,7 @@ def wav_to_mel_spectrogram(wav):
         sr=sampling_rate,
         n_fft=int(sampling_rate * mel_window_length / 1000),
         hop_length=int(sampling_rate * mel_window_step / 1000),
-        n_mels=mel_n_channels
+        n_mels=mel_n_channels,
     )
     return frames.astype(np.float32).T
 
@@ -86,7 +85,7 @@ def trim_long_silences(wav):
     samples_per_window = (vad_window_length * sampling_rate) // 1000
 
     # Trim the end of the audio to have a multiple of the window size
-    wav = wav[:len(wav) - (len(wav) % samples_per_window)]
+    wav = wav[: len(wav) - (len(wav) % samples_per_window)]
 
     # Convert the float waveform to 16-bit mono PCM
     pcm_wave = struct.pack("%dh" % len(wav), *(np.round(wav * int16_max)).astype(np.int16))
@@ -96,8 +95,7 @@ def trim_long_silences(wav):
     vad = webrtcvad.Vad(mode=3)
     for window_start in range(0, len(wav), samples_per_window):
         window_end = window_start + samples_per_window
-        voice_flags.append(vad.is_speech(pcm_wave[window_start * 2:window_end * 2],
-                                         sample_rate=sampling_rate))
+        voice_flags.append(vad.is_speech(pcm_wave[window_start * 2 : window_end * 2], sample_rate=sampling_rate))
     voice_flags = np.array(voice_flags)
 
     # Smooth the voice detection with a moving average
@@ -105,7 +103,7 @@ def trim_long_silences(wav):
         array_padded = np.concatenate((np.zeros((width - 1) // 2), array, np.zeros(width // 2)))
         ret = np.cumsum(array_padded, dtype=float)
         ret[width:] = ret[width:] - ret[:-width]
-        return ret[width - 1:] / width
+        return ret[width - 1 :] / width
 
     audio_mask = moving_average(voice_flags, vad_moving_average_width)
     audio_mask = np.round(audio_mask).astype(np.bool)
@@ -120,7 +118,7 @@ def trim_long_silences(wav):
 def normalize_volume(wav, target_dBFS, increase_only=False, decrease_only=False):  # noqa: N803
     if increase_only and decrease_only:
         raise ValueError("Both increase only and decrease only are set")
-    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav ** 2))  # noqa: N806
+    dBFS_change = target_dBFS - 10 * np.log10(np.mean(wav**2))  # noqa: N806
     if (dBFS_change < 0 and increase_only) or (dBFS_change > 0 and decrease_only):
         return wav
     return wav * (10 ** (dBFS_change / 20))

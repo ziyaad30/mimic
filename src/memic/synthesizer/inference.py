@@ -37,27 +37,27 @@ class Synthesizer:
         self._model = None
 
     def is_loaded(self):
-        """Whether the model is loaded in memory.
-        """
+        """Whether the model is loaded in memory."""
         return self._model is not None
 
     def load(self):
-        """Instantiates and loads the model given the weights file that was passed in the constructor.
-        """
-        self._model = Tacotron(embed_dims=hparams.tts_embed_dims,
-                               num_chars=len(symbols),
-                               encoder_dims=hparams.tts_encoder_dims,
-                               decoder_dims=hparams.tts_decoder_dims,
-                               n_mels=hparams.num_mels,
-                               fft_bins=hparams.num_mels,
-                               postnet_dims=hparams.tts_postnet_dims,
-                               encoder_K=hparams.tts_encoder_K,
-                               lstm_dims=hparams.tts_lstm_dims,
-                               postnet_K=hparams.tts_postnet_K,
-                               num_highways=hparams.tts_num_highways,
-                               dropout=hparams.tts_dropout,
-                               stop_threshold=hparams.tts_stop_threshold,
-                               speaker_embedding_size=hparams.speaker_embedding_size).to(self.device)
+        """Instantiates and loads the model given the weights file that was passed in the constructor."""
+        self._model = Tacotron(
+            embed_dims=hparams.tts_embed_dims,
+            num_chars=len(symbols),
+            encoder_dims=hparams.tts_encoder_dims,
+            decoder_dims=hparams.tts_decoder_dims,
+            n_mels=hparams.num_mels,
+            fft_bins=hparams.num_mels,
+            postnet_dims=hparams.tts_postnet_dims,
+            encoder_K=hparams.tts_encoder_K,
+            lstm_dims=hparams.tts_lstm_dims,
+            postnet_K=hparams.tts_postnet_K,
+            num_highways=hparams.tts_num_highways,
+            dropout=hparams.tts_dropout,
+            stop_threshold=hparams.tts_stop_threshold,
+            speaker_embedding_size=hparams.speaker_embedding_size,
+        ).to(self.device)
 
         self._model.load(self.model_fpath)
         self._model.eval()
@@ -65,9 +65,7 @@ class Synthesizer:
         if self.verbose:
             print('Loaded synthesizer "%s" trained to step %d' % (self.model_fpath.name, self._model.state_dict()["step"]))
 
-    def synthesize_spectrograms(self, texts: list[str],
-                                embeddings: np.ndarray | list[np.ndarray],
-                                return_alignments=False):
+    def synthesize_spectrograms(self, texts: list[str], embeddings: np.ndarray | list[np.ndarray], return_alignments=False):
         """Synthesizes mel spectrograms from texts and speaker embeddings.
 
         :param texts: a list of N text prompts to be synthesized
@@ -88,10 +86,8 @@ class Synthesizer:
             embeddings = [embeddings]
 
         # Batch inputs
-        batched_inputs = [inputs[i:i+hparams.synthesis_batch_size]
-                             for i in range(0, len(inputs), hparams.synthesis_batch_size)]
-        batched_embeds = [embeddings[i:i+hparams.synthesis_batch_size]
-                             for i in range(0, len(embeddings), hparams.synthesis_batch_size)]
+        batched_inputs = [inputs[i : i + hparams.synthesis_batch_size] for i in range(0, len(inputs), hparams.synthesis_batch_size)]
+        batched_embeds = [embeddings[i : i + hparams.synthesis_batch_size] for i in range(0, len(embeddings), hparams.synthesis_batch_size)]
 
         specs = []
         for i, batch in enumerate(batched_inputs, 1):
@@ -105,7 +101,7 @@ class Synthesizer:
             chars = np.stack(chars)
 
             # Stack speaker embeddings into 2D array for batch processing
-            speaker_embeds = np.stack(batched_embeds[i-1])
+            speaker_embeds = np.stack(batched_embeds[i - 1])
 
             # Convert to tensor
             chars = torch.tensor(chars).long().to(self.device)

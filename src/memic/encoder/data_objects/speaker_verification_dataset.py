@@ -8,13 +8,15 @@ from torch.utils.data import DataLoader, Dataset
 
 # TODO: improve with a pool of speakers for data efficiency
 
+
 class SpeakerVerificationDataset(Dataset):
     def __init__(self, datasets_root: Path):
         self.root = datasets_root
         speaker_dirs = [f for f in self.root.glob("*") if f.is_dir()]
         if len(speaker_dirs) == 0:
-            raise Exception("No speakers found. Make sure you are pointing to the directory "
-                            "containing all preprocessed speaker directories.")
+            raise Exception(
+                "No speakers found. Make sure you are pointing to the directory " "containing all preprocessed speaker directories."
+            )
         self.speakers = [Speaker(speaker_dir) for speaker_dir in speaker_dirs]
         self.speaker_cycler = RandomCycler(self.speakers)
 
@@ -33,9 +35,18 @@ class SpeakerVerificationDataset(Dataset):
 
 
 class SpeakerVerificationDataLoader(DataLoader):
-    def __init__(self, dataset, speakers_per_batch, utterances_per_speaker, sampler=None,
-                 batch_sampler=None, num_workers=0, pin_memory=False, timeout=0,
-                 worker_init_fn=None):
+    def __init__(
+        self,
+        dataset,
+        speakers_per_batch,
+        utterances_per_speaker,
+        sampler=None,
+        batch_sampler=None,
+        num_workers=0,
+        pin_memory=False,
+        timeout=0,
+        worker_init_fn=None,
+    ):
         self.utterances_per_speaker = utterances_per_speaker
 
         super().__init__(
@@ -49,7 +60,7 @@ class SpeakerVerificationDataLoader(DataLoader):
             pin_memory=pin_memory,
             drop_last=False,
             timeout=timeout,
-            worker_init_fn=worker_init_fn
+            worker_init_fn=worker_init_fn,
         )
 
     def collate(self, speakers):

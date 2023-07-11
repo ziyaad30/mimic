@@ -42,15 +42,15 @@ recognized_datasets = [
 
 
 class Toolbox:
-    def __init__(self, datasets_root: Path, models_dir: Path, seed: int=None):
+    def __init__(self, datasets_root: Path, models_dir: Path, seed: int = None):
         sys.excepthook = self.excepthook
         if not datasets_root.exists():
             datasets_root.mkdir()
         self.datasets_root = datasets_root
         self.utterances = set()
-        self.current_generated = (None, None, None, None) # speaker_name, spec, breaks, wav
+        self.current_generated = (None, None, None, None)  # speaker_name, spec, breaks, wav
 
-        self.synthesizer = None # type: Synthesizer
+        self.synthesizer = None  # type: Synthesizer
         self.current_wav = None
         self.waves_list = []
         self.waves_count = 0
@@ -59,6 +59,7 @@ class Toolbox:
         # Check for webrtcvad (enables removal of silences in vocoder output)
         try:
             import webrtcvad
+
             self.trim_silences = True
         except:
             self.trim_silences = False
@@ -76,8 +77,10 @@ class Toolbox:
     def setup_events(self):
         # Dataset, speaker and utterance selection
         self.ui.browser_load_button.clicked.connect(lambda: self.load_from_browser())
+
         def random_func(level):
             return lambda: self.ui.populate_browser(self.datasets_root, recognized_datasets, level)
+
         self.ui.random_dataset_button.clicked.connect(random_func(0))
         self.ui.random_speaker_button.clicked.connect(random_func(1))
         self.ui.random_utterance_button.clicked.connect(random_func(2))
@@ -86,39 +89,50 @@ class Toolbox:
 
         # Model selection
         self.ui.encoder_box.currentIndexChanged.connect(self.init_encoder)
+
         def func():
             self.synthesizer = None
+
         self.ui.synthesizer_box.currentIndexChanged.connect(func)
         self.ui.vocoder_box.currentIndexChanged.connect(self.init_vocoder)
 
         # Utterance selection
         def func():
             return self.load_from_browser(self.ui.browse_file())
+
         self.ui.browser_browse_button.clicked.connect(func)
+
         def func():
             return self.ui.draw_utterance(self.ui.selected_utterance, "current")
+
         self.ui.utterance_history.currentIndexChanged.connect(func)
+
         def func():
             return self.ui.play(self.ui.selected_utterance.wav, Synthesizer.sample_rate)
+
         self.ui.play_button.clicked.connect(func)
         self.ui.stop_button.clicked.connect(self.ui.stop)
         self.ui.record_button.clicked.connect(self.record)
 
-        #Audio
+        # Audio
         self.ui.setup_audio_devices(Synthesizer.sample_rate)
 
-        #Wav playback & save
+        # Wav playback & save
         def func():
             return self.replay_last_wav()
+
         self.ui.replay_wav_button.clicked.connect(func)
+
         def func():
             return self.export_current_wave()
+
         self.ui.export_wav_button.clicked.connect(func)
         self.ui.waves_cb.currentIndexChanged.connect(self.set_current_wav)
 
         # Generation
         def func():
             return self.synthesize() or self.vocode()
+
         self.ui.generate_button.clicked.connect(func)
         self.ui.synthesize_button.clicked.connect(self.synthesize)
         self.ui.vocode_button.clicked.connect(self.vocode)
@@ -136,17 +150,14 @@ class Toolbox:
     def replay_last_wav(self):
         self.ui.play(self.current_wav, Synthesizer.sample_rate)
 
-    def reset_ui(self, models_dir: Path, seed: int=None):
+    def reset_ui(self, models_dir: Path, seed: int = None):
         self.ui.populate_browser(self.datasets_root, recognized_datasets, 0, True)
         self.ui.populate_models(models_dir)
         self.ui.populate_gen_options(seed, self.trim_silences)
 
     def load_from_browser(self, fpath=None):
         if fpath is None:
-            fpath = Path(self.datasets_root,
-                         self.ui.current_dataset_name,
-                         self.ui.current_speaker_name,
-                         self.ui.current_utterance_name)
+            fpath = Path(self.datasets_root, self.ui.current_dataset_name, self.ui.current_speaker_name, self.ui.current_utterance_name)
             name = str(fpath.relative_to(self.datasets_root))
             speaker_name = self.ui.current_dataset_name + "_" + self.ui.current_speaker_name
 
@@ -256,10 +267,16 @@ class Toolbox:
 
         def vocoder_progress(i, seq_len, b_size, gen_rate):
             real_time_factor = (gen_rate / Synthesizer.sample_rate) * 1000
-            line = "Waveform generation: %d/%d (batch size: %d, rate: %.1fkHz - %.2fx real time)" \
-                   % (i * b_size, seq_len * b_size, b_size, gen_rate, real_time_factor)
+            line = "Waveform generation: %d/%d (batch size: %d, rate: %.1fkHz - %.2fx real time)" % (
+                i * b_size,
+                seq_len * b_size,
+                b_size,
+                gen_rate,
+                real_time_factor,
+            )
             self.ui.log(line, "overwrite")
             self.ui.set_loading(i, seq_len)
+
         if self.ui.current_vocoder_fpath is not None:
             self.ui.log("")
             wav = vocoder.infer_waveform(spec, progress_callback=vocoder_progress)
@@ -288,11 +305,11 @@ class Toolbox:
         # TODO better naming for the combobox items?
         wav_name = str(self.waves_count + 1)
 
-        #Update waves combobox
+        # Update waves combobox
         self.waves_count += 1
         if self.waves_count > MAX_WAVS:
-          self.waves_list.pop()
-          self.waves_namelist.pop()
+            self.waves_list.pop()
+            self.waves_namelist.pop()
         self.waves_list.insert(0, wav)
         self.waves_namelist.insert(0, wav_name)
 
@@ -304,7 +321,7 @@ class Toolbox:
         # Update current wav
         self.set_current_wav(0)
 
-        #Enable replay and save buttons:
+        # Enable replay and save buttons:
         self.ui.replay_wav_button.setDisabled(False)
         self.ui.export_wav_button.setDisabled(False)
 
@@ -358,4 +375,4 @@ class Toolbox:
         self.ui.set_loading(0)
 
     def update_seed_textbox(self):
-       self.ui.update_seed_textbox()
+        self.ui.update_seed_textbox()

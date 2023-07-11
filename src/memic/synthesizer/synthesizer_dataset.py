@@ -75,7 +75,6 @@ def collate_synthesizer(batch, r, hparams):
     # Index (for vocoder preprocessing)
     indices = [x[3] for x in batch]
 
-
     # Convert all to tensor
     chars = torch.tensor(chars).long()
     mel = torch.tensor(mel)
@@ -83,8 +82,10 @@ def collate_synthesizer(batch, r, hparams):
 
     return chars, mel, embeds, indices
 
+
 def pad1d(x, max_len, pad_value=0):
     return np.pad(x, (0, max_len - len(x)), mode="constant", constant_values=pad_value)
+
 
 def pad2d(x, max_len, pad_value=0):
     return np.pad(x, ((0, 0), (0, max_len - x.shape[-1])), mode="constant", constant_values=pad_value)

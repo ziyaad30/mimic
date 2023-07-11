@@ -11,8 +11,16 @@ from memic.synthesizer import audio
 from tqdm import tqdm
 
 
-def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, skip_existing: bool, hparams,
-                       no_alignments: bool, datasets_name: str, subfolders: str):
+def preprocess_dataset(
+    datasets_root: Path,
+    out_dir: Path,
+    n_processes: int,
+    skip_existing: bool,
+    hparams,
+    no_alignments: bool,
+    datasets_name: str,
+    subfolders: str,
+):
     # Gather the input directories
     dataset_root = datasets_root.joinpath(datasets_name)
     input_dirs = [dataset_root.joinpath(subfolder.strip()) for subfolder in subfolders.split(",")]
@@ -29,8 +37,7 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
 
     # Preprocess the dataset
     speaker_dirs = list(chain.from_iterable(input_dir.glob("*") for input_dir in input_dirs))
-    func = partial(preprocess_speaker, out_dir=out_dir, skip_existing=skip_existing,
-                   hparams=hparams, no_alignments=no_alignments)
+    func = partial(preprocess_speaker, out_dir=out_dir, skip_existing=skip_existing, hparams=hparams, no_alignments=no_alignments)
     job = Pool(n_processes).imap(func, speaker_dirs)
     for speaker_metadata in tqdm(job, datasets_name, len(speaker_dirs), unit="speakers"):
         for metadatum in speaker_metadata:
@@ -44,8 +51,10 @@ def preprocess_dataset(datasets_root: Path, out_dir: Path, n_processes: int, ski
     timesteps = sum([int(m[3]) for m in metadata])
     sample_rate = hparams.sample_rate
     hours = (timesteps / sample_rate) / 3600
-    print("The dataset consists of %d utterances, %d mel frames, %d audio timesteps (%.2f hours)." %
-          (len(metadata), mel_frames, timesteps, hours))
+    print(
+        "The dataset consists of %d utterances, %d mel frames, %d audio timesteps (%.2f hours)."
+        % (len(metadata), mel_frames, timesteps, hours)
+    )
     print("Max input length (text chars): %d" % max(len(m[5]) for m in metadata))
     print("Max mel frames length: %d" % max(int(m[4]) for m in metadata))
     print("Max audio timesteps length: %d" % max(int(m[3]) for m in metadata))
@@ -80,8 +89,7 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                         text = text.strip()
 
                     # Process the utterance
-                    metadata.append(process_utterance(wav, text, out_dir, str(wav_fpath.with_suffix("").name),
-                                                      skip_existing, hparams))
+                    metadata.append(process_utterance(wav, text, out_dir, str(wav_fpath.with_suffix("").name), skip_existing, hparams))
         else:
             # Process alignment file (LibriSpeech support)
             # Gather the utterance audios and texts
@@ -104,8 +112,7 @@ def preprocess_speaker(speaker_dir, out_dir: Path, skip_existing: bool, hparams,
                 wavs, texts = split_on_silences(wav_fpath, words, end_times, hparams)
                 for i, (wav, text) in enumerate(zip(wavs, texts)):
                     sub_basename = "%s_%02d" % (wav_fname, i)
-                    metadata.append(process_utterance(wav, text, out_dir, sub_basename,
-                                                      skip_existing, hparams))
+                    metadata.append(process_utterance(wav, text, out_dir, sub_basename, skip_existing, hparams))
 
     return [m for m in metadata if m is not None]
 
@@ -130,7 +137,7 @@ def split_on_silences(wav_fpath, words, end_times, hparams):
     # Profile the noise from the silences and perform noise reduction on the waveform
     silence_times = [[start_times[i], end_times[i]] for i in breaks]
     silence_times = (np.array(silence_times) * hparams.sample_rate).astype(np.int)
-    noisy_wav = np.concatenate([wav[stime[0]:stime[1]] for stime in silence_times])
+    noisy_wav = np.concatenate([wav[stime[0] : stime[1]] for stime in silence_times])
     if len(noisy_wav) > hparams.sample_rate * 0.02:
         profile = logmmse.profile_noise(noisy_wav, hparams.sample_rate)
         wav = logmmse.denoise(wav, profile, eta=0)
@@ -162,8 +169,8 @@ def split_on_silences(wav_fpath, words, end_times, hparams):
     # Split the utterance
     segment_times = [[end_times[start], start_times[end]] for start, end in segments]
     segment_times = (np.array(segment_times) * hparams.sample_rate).astype(np.int)
-    wavs = [wav[segment_time[0]:segment_time[1]] for segment_time in segment_times]
-    texts = [" ".join(words[start + 1:end]).replace("  ", " ") for start, end in segments]
+    wavs = [wav[segment_time[0] : segment_time[1]] for segment_time in segment_times]
+    texts = [" ".join(words[start + 1 : end]).replace("  ", " ") for start, end in segments]
 
     # # DEBUG: play the audio segments (run with -n=1)
     # import sounddevice as sd
@@ -182,8 +189,7 @@ def split_on_silences(wav_fpath, words, end_times, hparams):
     return wavs, texts
 
 
-def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
-                      skip_existing: bool, hparams):
+def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str, skip_existing: bool, hparams):
     ## FOR REFERENCE:
     # For you not to lose your head if you ever wish to change things here or implement your own
     # synthesizer.
@@ -195,7 +201,6 @@ def process_utterance(wav: np.ndarray, text: str, out_dir: Path, basename: str,
     # - Librosa pads the waveform before computing the mel spectrogram. Here, the waveform is saved
     #   without extra padding. This means that you won't have an exact relation between the length
     #   of the wav and of the mel spectrogram. See the vocoder data loader.
-
 
     # Skip existing utterances if needed
     mel_fpath = out_dir.joinpath("mels", "mel-%s.npy" % basename)
@@ -256,4 +261,3 @@ def create_embeddings(synthesizer_root: Path, encoder_model_fpath: Path, n_proce
     func = partial(embed_utterance, encoder_model_fpath=encoder_model_fpath)
     job = Pool(n_processes).imap(func, fpaths)
     list(tqdm(job, "Embedding", len(fpaths), unit="utterances"))
-

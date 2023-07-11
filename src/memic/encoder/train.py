@@ -14,9 +14,18 @@ def sync(device: torch.device):
         torch.cuda.synchronize(device)
 
 
-def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int, save_every: int,
-          backup_every: int, vis_every: int, force_restart: bool, visdom_server: str,
-          no_visdom: bool):
+def train(
+    run_id: str,
+    clean_data_root: Path,
+    models_dir: Path,
+    umap_every: int,
+    save_every: int,
+    backup_every: int,
+    vis_every: int,
+    force_restart: bool,
+    visdom_server: str,
+    no_visdom: bool,
+):
     # Create a dataset and a dataloader
     dataset = SpeakerVerificationDataset(clean_data_root)
     loader = SpeakerVerificationDataLoader(
@@ -105,20 +114,26 @@ def train(run_id: str, clean_data_root: Path, models_dir: Path, umap_every: int,
         # Overwrite the latest version of the model
         if save_every != 0 and step % save_every == 0:
             print("Saving the model (step %d)" % step)
-            torch.save({
-                "step": step + 1,
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-            }, state_fpath)
+            torch.save(
+                {
+                    "step": step + 1,
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                },
+                state_fpath,
+            )
 
         # Make a backup
         if backup_every != 0 and step % backup_every == 0:
             print("Making a backup (step %d)" % step)
             backup_fpath = model_dir / f"encoder_{step:06d}.bak"
-            torch.save({
-                "step": step + 1,
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-            }, backup_fpath)
+            torch.save(
+                {
+                    "step": step + 1,
+                    "model_state": model.state_dict(),
+                    "optimizer_state": optimizer.state_dict(),
+                },
+                backup_fpath,
+            )
 
         profiler.tick("Extras (visualizations, saving)")

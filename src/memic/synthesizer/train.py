@@ -16,15 +16,15 @@ from torch import optim
 from torch.utils.data import DataLoader
 
 
-def np_now(x: torch.Tensor): return x.detach().cpu().numpy()
+def np_now(x: torch.Tensor):
+    return x.detach().cpu().numpy()
 
 
 def time_string():
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
-def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup_every: int, force_restart: bool,
-          hparams):
+def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int, backup_every: int, force_restart: bool, hparams):
     models_dir.mkdir(exist_ok=True)
 
     model_dir = models_dir.joinpath(run_id)
@@ -63,20 +63,22 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
 
     # Instantiate Tacotron Model
     print("\nInitialising Tacotron Model...\n")
-    model = Tacotron(embed_dims=hparams.tts_embed_dims,
-                     num_chars=len(symbols),
-                     encoder_dims=hparams.tts_encoder_dims,
-                     decoder_dims=hparams.tts_decoder_dims,
-                     n_mels=hparams.num_mels,
-                     fft_bins=hparams.num_mels,
-                     postnet_dims=hparams.tts_postnet_dims,
-                     encoder_K=hparams.tts_encoder_K,
-                     lstm_dims=hparams.tts_lstm_dims,
-                     postnet_K=hparams.tts_postnet_K,
-                     num_highways=hparams.tts_num_highways,
-                     dropout=hparams.tts_dropout,
-                     stop_threshold=hparams.tts_stop_threshold,
-                     speaker_embedding_size=hparams.speaker_embedding_size).to(device)
+    model = Tacotron(
+        embed_dims=hparams.tts_embed_dims,
+        num_chars=len(symbols),
+        encoder_dims=hparams.tts_encoder_dims,
+        decoder_dims=hparams.tts_decoder_dims,
+        n_mels=hparams.num_mels,
+        fft_bins=hparams.num_mels,
+        postnet_dims=hparams.tts_postnet_dims,
+        encoder_K=hparams.tts_encoder_K,
+        lstm_dims=hparams.tts_lstm_dims,
+        postnet_K=hparams.tts_postnet_K,
+        num_highways=hparams.tts_num_highways,
+        dropout=hparams.tts_dropout,
+        stop_threshold=hparams.tts_stop_threshold,
+        speaker_embedding_size=hparams.speaker_embedding_size,
+    ).to(device)
 
     # Initialize the optimizer
     optimizer = optim.Adam(model.parameters())
@@ -127,10 +129,14 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         model.r = r
 
         # Begin the training
-        simple_table([(f"Steps with r={r}", str(training_steps // 1000) + "k Steps"),
-                      ("Batch Size", batch_size),
-                      ("Learning Rate", lr),
-                      ("Outputs/Step (r)", model.r)])
+        simple_table(
+            [
+                (f"Steps with r={r}", str(training_steps // 1000) + "k Steps"),
+                ("Batch Size", batch_size),
+                ("Learning Rate", lr),
+                ("Outputs/Step (r)", model.r),
+            ]
+        )
 
         for p in optimizer.param_groups:
             p["lr"] = lr
@@ -142,14 +148,14 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
         steps_per_epoch = np.ceil(total_iters / batch_size).astype(np.int32)
         epochs = np.ceil(training_steps / steps_per_epoch).astype(np.int32)
 
-        for epoch in range(1, epochs+1):
+        for epoch in range(1, epochs + 1):
             for i, (texts, mels, embeds, idx) in enumerate(data_loader, 1):
                 start_time = time.time()
 
                 # Generate stop tokens for training
                 stop = torch.ones(mels.shape[0], mels.shape[2])
                 for j, k in enumerate(idx):
-                    stop[j, :int(dataset.metadata[k][4])-1] = 0
+                    stop[j, : int(dataset.metadata[k][4]) - 1] = 0
 
                 texts = texts.to(device)
                 mels = mels.to(device)
@@ -186,16 +192,18 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                 step = model.get_step()
                 k = step // 1000
 
-                msg = f"| Epoch: {epoch}/{epochs} ({i}/{steps_per_epoch}) | Loss: {loss_window.average:#.4} | " \
-                      f"{1./time_window.average:#.2} steps/s | Step: {k}k | "
+                msg = (
+                    f"| Epoch: {epoch}/{epochs} ({i}/{steps_per_epoch}) | Loss: {loss_window.average:#.4} | "
+                    f"{1./time_window.average:#.2} steps/s | Step: {k}k | "
+                )
                 stream(msg)
 
                 # Backup or save model as appropriate
-                if backup_every != 0 and step % backup_every == 0 :
+                if backup_every != 0 and step % backup_every == 0:
                     backup_fpath = weights_fpath.parent / f"synthesizer_{k:06d}.pt"
                     model.save(backup_fpath, optimizer)
 
-                if save_every != 0 and step % save_every == 0 :
+                if save_every != 0 and step % save_every == 0:
                     # Must save latest optimizer state to ensure that resuming training
                     # doesn't produce artifacts
                     model.save(weights_fpath, optimizer)
@@ -213,17 +221,19 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
                             target_spectrogram = np_now(mels[sample_idx]).T[:mel_length]
                             attention_len = mel_length // model.r
 
-                            eval_model(attention=np_now(attention[sample_idx][:, :attention_len]),
-                                       mel_prediction=mel_prediction,
-                                       target_spectrogram=target_spectrogram,
-                                       input_seq=np_now(texts[sample_idx]),
-                                       step=step,
-                                       plot_dir=plot_dir,
-                                       mel_output_dir=mel_output_dir,
-                                       wav_dir=wav_dir,
-                                       sample_num=sample_idx + 1,
-                                       loss=loss,
-                                       hparams=hparams)
+                            eval_model(
+                                attention=np_now(attention[sample_idx][:, :attention_len]),
+                                mel_prediction=mel_prediction,
+                                target_spectrogram=target_spectrogram,
+                                input_seq=np_now(texts[sample_idx]),
+                                step=step,
+                                plot_dir=plot_dir,
+                                mel_output_dir=mel_output_dir,
+                                wav_dir=wav_dir,
+                                sample_num=sample_idx + 1,
+                                loss=loss,
+                                hparams=hparams,
+                            )
 
                 # Break out of loop to update training schedule
                 if step >= max_step:
@@ -233,8 +243,9 @@ def train(run_id: str, syn_dir: Path, models_dir: Path, save_every: int,  backup
             print("")
 
 
-def eval_model(attention, mel_prediction, target_spectrogram, input_seq, step,
-               plot_dir, mel_output_dir, wav_dir, sample_num, loss, hparams):
+def eval_model(
+    attention, mel_prediction, target_spectrogram, input_seq, step, plot_dir, mel_output_dir, wav_dir, sample_num, loss, hparams
+):
     # Save some results for evaluation
     attention_path = str(plot_dir.joinpath(f"attention_step_{step}_sample_{sample_num}"))
     save_attention(attention, attention_path)
@@ -251,7 +262,11 @@ def eval_model(attention, mel_prediction, target_spectrogram, input_seq, step,
     # save real and predicted mel-spectrogram plot to disk (control purposes)
     spec_fpath = plot_dir.joinpath(f"step-{step}-mel-spectrogram_sample_{sample_num}.png")
     title_str = "{}, {}, step={}, loss={:.5f}".format("Tacotron", time_string(), step, loss)
-    plot_spectrogram(mel_prediction, str(spec_fpath), title=title_str,
-                     target_spectrogram=target_spectrogram,
-                     max_len=target_spectrogram.size // hparams.num_mels)
+    plot_spectrogram(
+        mel_prediction,
+        str(spec_fpath),
+        title=title_str,
+        target_spectrogram=target_spectrogram,
+        max_len=target_spectrogram.size // hparams.num_mels,
+    )
     print(f"Input at step {step}: {sequence_to_text(input_seq)}")

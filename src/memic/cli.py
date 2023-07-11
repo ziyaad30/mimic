@@ -78,8 +78,7 @@ class InternalCmds(BetterEnum):
 
 
 class Scripts:
-    """A collection of scripts to be run in the terminal.
-    """
+    """A collection of scripts to be run in the terminal."""
 
     def fix(self):
         """Fix common issues by calling `pre-commit run --all-files`."""
@@ -91,8 +90,7 @@ class Scripts:
         subprocess.run(InternalCmds.git_update)
 
     def test(self, *args):
-        """Run tests and open coverage report.
-        """
+        """Run tests and open coverage report."""
         p = subprocess.run(" ".join(InternalCmds.pytest_cov), shell=True)
 
         if p.returncode == 0:
@@ -103,6 +101,7 @@ class Scripts:
 
     def toolbox(self, *args):
         from memic.demo_toolbox import main
+
         main(*args)
 
     def _run(self, cmd, *args):

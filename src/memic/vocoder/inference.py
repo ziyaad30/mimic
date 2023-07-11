@@ -2,7 +2,8 @@ import torch
 from memic.vocoder import hparams as hp
 from memic.vocoder.models.fatchord_version import WaveRNN
 
-_model = None   # type: WaveRNN
+_model = None  # type: WaveRNN
+
 
 def load_model(weights_fpath, verbose=True):
     global _model, _device
@@ -21,7 +22,7 @@ def load_model(weights_fpath, verbose=True):
         res_blocks=hp.voc_res_blocks,
         hop_length=hp.hop_length,
         sample_rate=hp.sample_rate,
-        mode=hp.voc_mode
+        mode=hp.voc_mode,
     )
 
     if torch.cuda.is_available():
@@ -41,8 +42,7 @@ def is_loaded():
     return _model is not None
 
 
-def infer_waveform(mel, normalize=True,  batched=True, target=8000, overlap=800,
-                   progress_callback=None):
+def infer_waveform(mel, normalize=True, batched=True, target=8000, overlap=800, progress_callback=None):
     """Infers the waveform of a mel spectrogram output by the synthesizer (the format must match
     that of the synthesizer!).
 

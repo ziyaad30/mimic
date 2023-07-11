@@ -55,8 +55,7 @@ def embed_frames_batch(frames_batch):
     return embed
 
 
-def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_frames,
-                           min_pad_coverage=0.75, overlap=0.5):
+def compute_partial_slices(n_samples, partial_utterance_n_frames=partials_n_frames, min_pad_coverage=0.75, overlap=0.5):
     """Computes where to split an utterance waveform and its corresponding mel spectrogram.
 
     Computes where to split an utterance waveform and its corresponding mel spectrogram to obtain
@@ -162,6 +161,7 @@ def embed_speaker(wavs, **kwargs):
 
 def plot_embedding_as_heatmap(embed, ax=None, title="", shape=None, color_range=(0, 0.30)):
     import matplotlib.pyplot as plt
+
     if ax is None:
         ax = plt.gca()
 

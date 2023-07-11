@@ -29,20 +29,22 @@ def run_synthesis(in_dir: Path, out_dir: Path, syn_model_fpath: Path, hparams):
     print("Synthesizer using device:", device)
 
     # Instantiate Tacotron model
-    model = Tacotron(embed_dims=hparams.tts_embed_dims,
-                     num_chars=len(symbols),
-                     encoder_dims=hparams.tts_encoder_dims,
-                     decoder_dims=hparams.tts_decoder_dims,
-                     n_mels=hparams.num_mels,
-                     fft_bins=hparams.num_mels,
-                     postnet_dims=hparams.tts_postnet_dims,
-                     encoder_K=hparams.tts_encoder_K,
-                     lstm_dims=hparams.tts_lstm_dims,
-                     postnet_K=hparams.tts_postnet_K,
-                     num_highways=hparams.tts_num_highways,
-                     dropout=0., # Use zero dropout for gta mels
-                     stop_threshold=hparams.tts_stop_threshold,
-                     speaker_embedding_size=hparams.speaker_embedding_size).to(device)
+    model = Tacotron(
+        embed_dims=hparams.tts_embed_dims,
+        num_chars=len(symbols),
+        encoder_dims=hparams.tts_encoder_dims,
+        decoder_dims=hparams.tts_decoder_dims,
+        n_mels=hparams.num_mels,
+        fft_bins=hparams.num_mels,
+        postnet_dims=hparams.tts_postnet_dims,
+        encoder_K=hparams.tts_encoder_K,
+        lstm_dims=hparams.tts_lstm_dims,
+        postnet_K=hparams.tts_postnet_K,
+        num_highways=hparams.tts_num_highways,
+        dropout=0.0,  # Use zero dropout for gta mels
+        stop_threshold=hparams.tts_stop_threshold,
+        speaker_embedding_size=hparams.speaker_embedding_size,
+    ).to(device)
 
     # Load the weights
     print("\nLoading weights at %s" % syn_model_fpath)
@@ -82,7 +84,7 @@ def run_synthesis(in_dir: Path, out_dir: Path, syn_model_fpath: Path, hparams):
                 mel_out = mels_out[j].detach().cpu().numpy().T
 
                 # Use the length of the ground truth mel to remove padding from the generated mels
-                mel_out = mel_out[:int(dataset.metadata[k][4])]
+                mel_out = mel_out[: int(dataset.metadata[k][4])]
 
                 # Write the spectrogram to disk
                 np.save(mel_filename, mel_out, allow_pickle=False)

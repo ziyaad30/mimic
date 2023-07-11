@@ -14,24 +14,15 @@ from memic.utils.default_models import ensure_default_models
 from memic.vocoder import inference as vocoder
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-e", "--enc_model_fpath", type=Path, default="saved_models/default/encoder.pt", help="Path to a saved encoder")
+    parser.add_argument(
+        "-s", "--syn_model_fpath", type=Path, default="saved_models/default/synthesizer.pt", help="Path to a saved synthesizer"
     )
-    parser.add_argument("-e", "--enc_model_fpath", type=Path,
-                        default="saved_models/default/encoder.pt",
-                        help="Path to a saved encoder")
-    parser.add_argument("-s", "--syn_model_fpath", type=Path,
-                        default="saved_models/default/synthesizer.pt",
-                        help="Path to a saved synthesizer")
-    parser.add_argument("-v", "--voc_model_fpath", type=Path,
-                        default="saved_models/default/vocoder.pt",
-                        help="Path to a saved vocoder")
-    parser.add_argument("--cpu", action="store_true", help=\
-        "If True, processing is done on CPU, even when a GPU is available.")
-    parser.add_argument("--no_sound", action="store_true", help=\
-        "If True, audio won't be played.")
-    parser.add_argument("--seed", type=int, default=None, help=\
-        "Optional random number seed value to make toolbox deterministic.")
+    parser.add_argument("-v", "--voc_model_fpath", type=Path, default="saved_models/default/vocoder.pt", help="Path to a saved vocoder")
+    parser.add_argument("--cpu", action="store_true", help="If True, processing is done on CPU, even when a GPU is available.")
+    parser.add_argument("--no_sound", action="store_true", help="If True, audio won't be played.")
+    parser.add_argument("--seed", type=int, default=None, help="Optional random number seed value to make toolbox deterministic.")
     args = parser.parse_args()
     arg_dict = vars(args)
     print_args(args, parser)
@@ -46,14 +37,18 @@ if __name__ == "__main__":
         device_id = torch.cuda.current_device()
         gpu_properties = torch.cuda.get_device_properties(device_id)
         ## Print some environment information (for debugging purposes)
-        print("Found %d GPUs available. Using GPU %d (%s) of compute capability %d.%d with "
-            "%.1fGb total memory.\n" %
-            (torch.cuda.device_count(),
-            device_id,
-            gpu_properties.name,
-            gpu_properties.major,
-            gpu_properties.minor,
-            gpu_properties.total_memory / 1e9))
+        print(
+            "Found %d GPUs available. Using GPU %d (%s) of compute capability %d.%d with "
+            "%.1fGb total memory.\n"
+            % (
+                torch.cuda.device_count(),
+                device_id,
+                gpu_properties.name,
+                gpu_properties.major,
+                gpu_properties.minor,
+                gpu_properties.total_memory / 1e9,
+            )
+        )
     else:
         print("Using CPU for inference.\n")
 
@@ -63,7 +58,6 @@ if __name__ == "__main__":
     encoder.load_model(args.enc_model_fpath)
     synthesizer = Synthesizer(args.syn_model_fpath)
     vocoder.load_model(args.voc_model_fpath)
-
 
     ## Run a test
     print("Testing your configuration with small inputs.")
@@ -98,6 +92,7 @@ if __name__ == "__main__":
     # now we'll simply hide it like this:
     def no_action(*args):
         return None
+
     print("\tTesting the vocoder...")
     # For the sake of making this test short, we'll pass a short target length. The target length
     # is the length of the wav segments that are processed in parallel. E.g. for audio sampled
@@ -109,20 +104,20 @@ if __name__ == "__main__":
 
     print("All test passed! You can now synthesize speech.\n\n")
 
-
     ## Interactive speech generation
-    print("This is a GUI-less example of interface to SV2TTS. The purpose of this script is to "
-          "show how you can interface this project easily with your own. See the source code for "
-          "an explanation of what is happening.\n")
+    print(
+        "This is a GUI-less example of interface to SV2TTS. The purpose of this script is to "
+        "show how you can interface this project easily with your own. See the source code for "
+        "an explanation of what is happening.\n"
+    )
 
     print("Interactive generation loop")
     num_generated = 0
     while True:
         try:
             # Get the reference audio filepath
-            message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " \
-                      "wav, m4a, flac, ...):\n"
-            in_fpath = Path(input(message).replace('"', "").replace("\'", ""))
+            message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " "wav, m4a, flac, ...):\n"
+            in_fpath = Path(input(message).replace('"', "").replace("'", ""))
 
             ## Computing the embedding
             # First, we load the wav using the function that the speaker encoder provides. This is
@@ -142,7 +137,6 @@ if __name__ == "__main__":
             embed = encoder.embed_utterance(preprocessed_wav)
             print("Created the embedding")
 
-
             ## Generating the spectrogram
             text = input("Write a sentence (+-20 words) to be synthesized:\n")
 
@@ -160,7 +154,6 @@ if __name__ == "__main__":
             spec = specs[0]
             print("Created the mel spectrogram")
 
-
             ## Generating the waveform
             print("Synthesizing the waveform:")
 
@@ -173,7 +166,6 @@ if __name__ == "__main__":
             # spectrogram, the more time-efficient the vocoder.
             generated_wav = vocoder.infer_waveform(spec)
 
-
             ## Post-generation
             # There's a bug with sounddevice that makes the audio cut one second earlier, so we
             # pad it.
@@ -185,6 +177,7 @@ if __name__ == "__main__":
             # Play the audio (non-blocking)
             if not args.no_sound:
                 import sounddevice as sd
+
                 try:
                     sd.stop()
                     sd.play(generated_wav, synthesizer.sample_rate)
@@ -200,7 +193,6 @@ if __name__ == "__main__":
             sf.write(filename, generated_wav.astype(np.float32), synthesizer.sample_rate)
             num_generated += 1
             print("\nSaved output as %s\n\n" % filename)
-
 
         except Exception as e:
             print("Caught exception: %s" % repr(e))

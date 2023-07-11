@@ -11,9 +11,9 @@ from tqdm import tqdm
 
 _AUDIO_EXTENSIONS = ("wav", "flac", "m4a", "mp3")
 
+
 class DatasetLog:
-    """Registers metadata about the dataset in a text file.
-    """
+    """Registers metadata about the dataset in a text file."""
 
     def __init__(self, root, name):
         self.text_file = open(Path(root, "Log_%s.txt" % name.replace("/", "_")), "w")
@@ -26,6 +26,7 @@ class DatasetLog:
 
     def _log_params(self):
         from memic.encoder import params_data
+
         self.write_line("Parameter values:")
         for param_name in (p for p in dir(params_data) if not p.startswith("__")):
             value = getattr(params_data, param_name)
@@ -56,7 +57,7 @@ class DatasetLog:
 def _init_preprocess_dataset(dataset_name, datasets_root, out_dir) -> (Path, DatasetLog):
     dataset_root = datasets_root.joinpath(dataset_name)
     if not dataset_root.exists():
-        print("Couldn\'t find %s, skipping this dataset." % dataset_root)
+        print("Couldn't find %s, skipping this dataset." % dataset_root)
         return None, None
     return dataset_root, DatasetLog(out_dir, dataset_name)
 
@@ -153,17 +154,16 @@ def preprocess_voxceleb1(datasets_root: Path, out_dir: Path, skip_existing=False
 
     # Select the ID and the nationality, filter out non-anglophone speakers
     nationalities = {line[0]: line[3] for line in metadata}
-    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if
-                        nationality.lower() in anglophone_nationalites]
-    print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." %
-          (len(keep_speaker_ids), len(nationalities)))
+    keep_speaker_ids = [speaker_id for speaker_id, nationality in nationalities.items() if nationality.lower() in anglophone_nationalites]
+    print("VoxCeleb1: using samples from %d (presumed anglophone) speakers out of %d." % (len(keep_speaker_ids), len(nationalities)))
 
     # Get the speaker directories for anglophone speakers only
     speaker_dirs = dataset_root.joinpath("wav").glob("*")
-    speaker_dirs = [speaker_dir for speaker_dir in speaker_dirs if
-                    speaker_dir.name in keep_speaker_ids]
-    print("VoxCeleb1: found %d anglophone speakers on the disk, %d missing (this is normal)." %
-          (len(speaker_dirs), len(keep_speaker_ids) - len(speaker_dirs)))
+    speaker_dirs = [speaker_dir for speaker_dir in speaker_dirs if speaker_dir.name in keep_speaker_ids]
+    print(
+        "VoxCeleb1: found %d anglophone speakers on the disk, %d missing (this is normal)."
+        % (len(speaker_dirs), len(keep_speaker_ids) - len(speaker_dirs))
+    )
 
     # Preprocess all speakers
     _preprocess_speaker_dirs(speaker_dirs, dataset_name, datasets_root, out_dir, skip_existing, logger)

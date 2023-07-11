@@ -18,22 +18,28 @@ from PyQt5.QtWidgets import *  # noqa: F403
 filterwarnings("ignore")
 
 
-colormap = np.array([
-    [0, 127, 70],
-    [255, 0, 0],
-    [255, 217, 38],
-    [0, 135, 255],
-    [165, 0, 165],
-    [255, 167, 255],
-    [97, 142, 151],
-    [0, 255, 255],
-    [255, 96, 38],
-    [142, 76, 0],
-    [33, 0, 127],
-    [0, 0, 0],
-    [183, 183, 183],
-    [76, 255, 0],
-], dtype=np.float64) / 255
+colormap = (
+    np.array(
+        [
+            [0, 127, 70],
+            [255, 0, 0],
+            [255, 217, 38],
+            [0, 135, 255],
+            [165, 0, 165],
+            [255, 167, 255],
+            [97, 142, 151],
+            [0, 255, 255],
+            [255, 96, 38],
+            [142, 76, 0],
+            [33, 0, 127],
+            [0, 0, 0],
+            [183, 183, 183],
+            [76, 255, 0],
+        ],
+        dtype=np.float64,
+    )
+    / 255
+)
 
 default_text = """Welcome to the toolbox! To begin, load an utterance from your datasets or record one
 The synthesizer expects to generate outputs that are somewhere between 5 and 12 seconds.
@@ -99,16 +105,19 @@ class UI(QDialog):
 
         # Display a message if there aren't enough points
         if len(utterances) < self.min_umap_points:
-            self.umap_ax.text(.5, .5, "Add %d more points to\ngenerate the projections" %
-                              (self.min_umap_points - len(utterances)),
-                              horizontalalignment="center", fontsize=15)
+            self.umap_ax.text(
+                0.5,
+                0.5,
+                "Add %d more points to\ngenerate the projections" % (self.min_umap_points - len(utterances)),
+                horizontalalignment="center",
+                fontsize=15,
+            )
             self.umap_ax.set_title("")
 
         # Compute the projections
         else:
             if not self.umap_hot:
-                self.log(
-                    "Drawing UMAP projections for the first time, this will take a few seconds.")
+                self.log("Drawing UMAP projections for the first time, this will take a few seconds.")
                 self.umap_hot = True
 
             reducer = umap.UMAP(int(np.ceil(np.sqrt(len(embeds)))), metric="cosine")
@@ -120,8 +129,7 @@ class UI(QDialog):
                 mark = "x" if "_gen_" in utterance.name else "o"
                 label = None if utterance.speaker_name in speakers_done else utterance.speaker_name
                 speakers_done.add(utterance.speaker_name)
-                self.umap_ax.scatter(projection[0], projection[1], c=[color], marker=mark,
-                                     label=label)
+                self.umap_ax.scatter(projection[0], projection[1], c=[color], marker=mark, label=label)
             self.umap_ax.legend(prop={"size": 10})
 
         # Draw the plot
@@ -133,13 +141,9 @@ class UI(QDialog):
     def save_audio_file(self, wav, sample_rate):
         dialog = QFileDialog()
         dialog.setDefaultSuffix(".wav")
-        fpath, _ = dialog.getSaveFileName(
-            parent=self,
-            caption="Select a path to save the audio file",
-            filter="Audio Files (*.flac *.wav)"
-        )
+        fpath, _ = dialog.getSaveFileName(parent=self, caption="Select a path to save the audio file", filter="Audio Files (*.flac *.wav)")
         if fpath:
-            #Default format is wav
+            # Default format is wav
             if Path(fpath).suffix == "":
                 fpath += ".wav"
             sf.write(fpath, wav, sample_rate)
@@ -241,11 +245,7 @@ class UI(QDialog):
         return self.utterance_box.currentText()
 
     def browse_file(self):
-        fpath = QFileDialog().getOpenFileName(
-            parent=self,
-            caption="Select an audio file",
-            filter="Audio Files (*.mp3 *.flac *.wav *.m4a)"
-        )
+        fpath = QFileDialog().getOpenFileName(parent=self, caption="Select an audio file", filter="Audio Files (*.mp3 *.flac *.wav *.m4a)")
         return Path(fpath[0]) if fpath[0] != "" else ""
 
     @staticmethod
@@ -263,8 +263,7 @@ class UI(QDialog):
         box.setDisabled(len(items) == 0)
         box.blockSignals(False)
 
-    def populate_browser(self, datasets_root: Path, recognized_datasets: list, level: int,
-                         random=True):
+    def populate_browser(self, datasets_root: Path, recognized_datasets: list, level: int, random=True):
         self.datasets_root = datasets_root
         self.check_filename()
 
@@ -275,13 +274,16 @@ class UI(QDialog):
                 datasets = [d.relative_to(datasets_root) for d in datasets if d.exists()]
                 self.browser_load_button.setDisabled(len(datasets) == 0)
             if datasets_root is None or len(datasets) == 0:
-                msg = "Warning: you d" + ("id not pass a root directory for datasets as argument" \
-                    if datasets_root is None else "o not have any of the recognized datasets" \
-                                                  " in %s" % datasets_root)
+                msg = "Warning: you d" + (
+                    "id not pass a root directory for datasets as argument"
+                    if datasets_root is None
+                    else "o not have any of the recognized datasets" " in %s" % datasets_root
+                )
                 self.log(msg)
-                msg += ".\nThe recognized datasets are:\n\t%s\nFeel free to add your own. You " \
-                       "can still use the toolbox by recording samples yourself." % \
-                       ("\n\t".join(recognized_datasets))
+                msg += (
+                    ".\nThe recognized datasets are:\n\t%s\nFeel free to add your own. You "
+                    "can still use the toolbox by recording samples yourself." % ("\n\t".join(recognized_datasets))
+                )
                 print(msg, file=sys.stderr)
 
                 self.random_utterance_button.setDisabled(True)
@@ -303,10 +305,7 @@ class UI(QDialog):
 
         # Select a random utterance
         if level <= 2:
-            utterances_root = datasets_root.joinpath(
-                self.current_dataset_name,
-                self.current_speaker_name
-            )
+            utterances_root = datasets_root.joinpath(self.current_dataset_name, self.current_speaker_name)
             utterances = []
             for extension in ["mp3", "flac", "wav", "m4a"]:
                 utterances.extend(Path(utterances_root).glob("**/*.%s" % extension))
@@ -324,13 +323,17 @@ class UI(QDialog):
                 self.user_name_input.setText(username)
                 self.user_name_input_changed()
 
-        if self.datasets_root is not None and re.match(rf"{username}@rec\d*", self.record_name_input.text()) and (self.datasets_root / username).exists():
+        if (
+            self.datasets_root is not None
+            and re.match(rf"{username}@rec\d*", self.record_name_input.text())
+            and (self.datasets_root / username).exists()
+        ):
             print(list((self.datasets_root / username).iterdir()))
-            n = len(
-                [1 for d in (self.datasets_root / username).iterdir() if re.match(rf"{username}@rec\d*\.wav", d.name)]) + 1
+            n = len([1 for d in (self.datasets_root / username).iterdir() if re.match(rf"{username}@rec\d*\.wav", d.name)]) + 1
             if n < 10:
                 n = f"0{n}"
             self.record_name_input.setText(f"{username}@rec{n}")
+
     def browser_select_next(self):
         index = (self.utterance_box.currentIndex() + 1) % len(self.utterance_box)
         self.utterance_box.setCurrentIndex(index)
@@ -445,7 +448,6 @@ class UI(QDialog):
 
         self.datasets_root = None
 
-
         ## Main layouts
         # Root
         root_layout = QGridLayout()
@@ -537,7 +539,7 @@ class UI(QDialog):
             [self.utterance_history, self.browser_browse_button, self.play_button, self.stop_button],
             [QLabel("<b>Encoder</b>"), QLabel("<b>Synthesizer</b>"), QLabel("<b>Vocoder</b>"), QLabel("<b>Audio Output</b>")],
             [self.encoder_box, self.synthesizer_box, self.vocoder_box, self.audio_out_devices_cb],
-            [QLabel("<b>Toolbox Output:</b>"), self.waves_cb, self.replay_wav_button, self.export_wav_button]
+            [QLabel("<b>Toolbox Output:</b>"), self.waves_cb, self.replay_wav_button, self.export_wav_button],
         ]
         for i, row in enumerate(widgets):
             for j, widget in enumerate(row):
@@ -547,13 +549,11 @@ class UI(QDialog):
         vis_layout.addStretch()
 
         gridspec_kw = {"width_ratios": [1, 4]}
-        fig, self.current_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
-                                            gridspec_kw=gridspec_kw)
+        fig, self.current_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0", gridspec_kw=gridspec_kw)
         fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(fig))
 
-        fig, self.gen_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0",
-                                        gridspec_kw=gridspec_kw)
+        fig, self.gen_ax = plt.subplots(1, 2, figsize=(10, 2.25), facecolor="#F0F0F0", gridspec_kw=gridspec_kw)
         fig.subplots_adjust(left=0, bottom=0.1, right=1, top=0.8)
         vis_layout.addWidget(FigureCanvas(fig))
 
@@ -561,7 +561,6 @@ class UI(QDialog):
             ax.set_facecolor("#F0F0F0")
             for side in ["top", "right", "bottom", "left"]:
                 ax.spines[side].set_visible(False)
-
 
         ## Generation
         self.text_prompt = QPlainTextEdit(default_text)
@@ -585,8 +584,9 @@ class UI(QDialog):
         self.seed_textbox.setMaximumWidth(80)
         layout_seed.addWidget(self.seed_textbox, 0, 1)
         self.trim_silences_checkbox = QCheckBox("Enhance vocoder output")
-        self.trim_silences_checkbox.setToolTip("When checked, trims excess silence in vocoder output."
-            " This feature requires `webrtcvad` to be installed.")
+        self.trim_silences_checkbox.setToolTip(
+            "When checked, trims excess silence in vocoder output." " This feature requires `webrtcvad` to be installed."
+        )
         layout_seed.addWidget(self.trim_silences_checkbox, 0, 2, 1, 2)
         gen_layout.addLayout(layout_seed)
 
@@ -598,7 +598,6 @@ class UI(QDialog):
         gen_layout.addWidget(self.log_window)
         self.logs = []
         gen_layout.addStretch()
-
 
         ## Set the size of the window and of the elements
         max_size = QDesktopWidget().availableGeometry(self).size() * 0.8

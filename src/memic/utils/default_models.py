@@ -5,7 +5,6 @@ from urllib.error import HTTPError
 
 from tqdm import tqdm
 
-
 default_models = {
     "encoder": ("https://drive.google.com/uc?export=download&id=1q8mEGwCkFy23KZsinbuvdKAQLqNKbYf1", 17090379),
     "synthesizer": ("https://drive.google.com/u/0/uc?id=1EqFMIbvxffxtjiVrtykroF6_mUh-5Z3s&export=download&confirm=t", 370554559),
@@ -51,6 +50,7 @@ def ensure_default_models(models_dir: Path):
     for thread, target_path, size in jobs:
         thread.join()
 
-        assert target_path.exists() and target_path.stat().st_size == size, \
-            f"Download for {target_path.name} failed. You may download models manually instead.\n" \
+        assert target_path.exists() and target_path.stat().st_size == size, (
+            f"Download for {target_path.name} failed. You may download models manually instead.\n"
             f"https://drive.google.com/drive/folders/1fU6umc5uQAVR2udZdHX-lDgXYzTyqG_j"
+        )

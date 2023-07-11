@@ -15,17 +15,15 @@ class SpeakerEncoder(nn.Module):
         self.loss_device = loss_device
 
         # Network defition
-        self.lstm = nn.LSTM(input_size=mel_n_channels,
-                            hidden_size=model_hidden_size,
-                            num_layers=model_num_layers,
-                            batch_first=True).to(device)
-        self.linear = nn.Linear(in_features=model_hidden_size,
-                                out_features=model_embedding_size).to(device)
+        self.lstm = nn.LSTM(input_size=mel_n_channels, hidden_size=model_hidden_size, num_layers=model_num_layers, batch_first=True).to(
+            device
+        )
+        self.linear = nn.Linear(in_features=model_hidden_size, out_features=model_embedding_size).to(device)
         self.relu = torch.nn.ReLU().to(device)
 
         # Cosine similarity scaling (with fixed initial parameter values)
-        self.similarity_weight = nn.Parameter(torch.tensor([10.])).to(loss_device)
-        self.similarity_bias = nn.Parameter(torch.tensor([-5.])).to(loss_device)
+        self.similarity_weight = nn.Parameter(torch.tensor([10.0])).to(loss_device)
+        self.similarity_bias = nn.Parameter(torch.tensor([-5.0])).to(loss_device)
 
         # Loss
         self.loss_fn = nn.CrossEntropyLoss().to(loss_device)
@@ -74,15 +72,14 @@ class SpeakerEncoder(nn.Module):
         centroids_incl = centroids_incl.clone() / (torch.norm(centroids_incl, dim=2, keepdim=True) + 1e-5)
 
         # Exclusive centroids (1 per utterance)
-        centroids_excl = (torch.sum(embeds, dim=1, keepdim=True) - embeds)
-        centroids_excl /= (utterances_per_speaker - 1)
+        centroids_excl = torch.sum(embeds, dim=1, keepdim=True) - embeds
+        centroids_excl /= utterances_per_speaker - 1
         centroids_excl = centroids_excl.clone() / (torch.norm(centroids_excl, dim=2, keepdim=True) + 1e-5)
 
         # Similarity matrix. The cosine similarity of already 2-normed vectors is simply the dot
         # product of these vectors (which is just an element-wise multiplication reduced by a sum).
         # We vectorize the computation for efficiency.
-        sim_matrix = torch.zeros(speakers_per_batch, utterances_per_speaker,
-                                 speakers_per_batch).to(self.loss_device)
+        sim_matrix = torch.zeros(speakers_per_batch, utterances_per_speaker, speakers_per_batch).to(self.loss_device)
         mask_matrix = 1 - np.eye(speakers_per_batch, dtype=np.int)
         for j in range(speakers_per_batch):
             mask = np.where(mask_matrix[j])[0]
@@ -113,21 +110,22 @@ class SpeakerEncoder(nn.Module):
 
         # Loss
         sim_matrix = self.similarity_matrix(embeds)
-        sim_matrix = sim_matrix.reshape((speakers_per_batch * utterances_per_speaker,
-                                         speakers_per_batch))
+        sim_matrix = sim_matrix.reshape((speakers_per_batch * utterances_per_speaker, speakers_per_batch))
         ground_truth = np.repeat(np.arange(speakers_per_batch), utterances_per_speaker)
         target = torch.from_numpy(ground_truth).long().to(self.loss_device)
         loss = self.loss_fn(sim_matrix, target)
 
         # EER (not backpropagated)
         with torch.no_grad():
+
             def inv_argmax(i):
                 return np.eye(1, speakers_per_batch, i, dtype=np.int)[0]
+
             labels = np.array([inv_argmax(i) for i in ground_truth])
             preds = sim_matrix.detach().cpu().numpy()
 
             # Snippet from https://yangcha.github.io/EER-ROC/
             fpr, tpr, thresholds = roc_curve(labels.flatten(), preds.flatten())
-            eer = brentq(lambda x: 1. - x - interp1d(fpr, tpr)(x), 0., 1.)
+            eer = brentq(lambda x: 1.0 - x - interp1d(fpr, tpr)(x), 0.0, 1.0)
 
         return loss, eer
