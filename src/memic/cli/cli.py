@@ -100,9 +100,57 @@ class Scripts:
             subprocess.run(InternalCmds.open_coverage)
 
     def toolbox(self, *args):
-        from memic.demo_toolbox import main
+        from memic.cli.demo_toolbox import main
 
         main(*args)
+
+    def cli(self, *args):
+        from memic.cli.demo_cli import main
+
+        main(*args)
+
+    def enc(self, *args):
+        self.encoder(*args)
+
+    def encoder(self, cmd, *args):
+        if cmd == "train":
+            from memic.cli.encoder_train import main
+            main(*args)
+        elif cmd == "preprocess":
+            from memic.cli.encoder_preprocess import main
+            main(*args)
+
+    def synth(self, *args):
+        self.synthesizer(*args)
+
+    def synthesizer(self, cmd, *args):
+        if cmd == "preprocess":
+            self.synthesizer_preprocess(*args)
+        elif cmd == "train":
+            from memic.cli.synthesizer_train import main
+            main(*args)
+
+    def synthesizer_preprocess(self, cmd, *args):
+        if cmd == "audio":
+            from memic.cli.synthesizer_preprocess_audio import main
+            main(*args)
+        elif cmd == "embeds":
+            from memic.cli.synthesizer_preprocess_embeds import main
+            main(*args)
+
+    def voc(self, *args):
+        self.vocoder(*args)
+
+    def vocode(self, *args):
+        self.vocoder(*args)
+
+    def vocoder(self, cmd, *args):
+        if cmd == "train":
+            from memic.cli.vocoder_train import main
+            main(*args)
+        elif cmd == "preprocess":
+            from memic.cli.vocoder_preprocess import main
+            main(*args)
 
     def _run(self, cmd, *args):
         """Run a command either from a method in this class or from a command in Cmds class."""
@@ -115,7 +163,7 @@ class Scripts:
             import cutwater
 
             print(f"Version: {cutwater.__version__}")
-            from utility.version_control import VersionControl
+            from memic.utility.version_control import VersionControl
 
             vc = VersionControl()
             gs = vc.git_summary()

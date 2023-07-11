@@ -4,7 +4,8 @@ from pathlib import Path
 from memic.synthesizer.preprocess import create_embeddings
 from memic.utils.argutils import print_args
 
-if __name__ == "__main__":
+
+def main(*args):
     parser = argparse.ArgumentParser(
         description="Creates embeddings for the synthesizer from the LibriSpeech utterances.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -13,10 +14,11 @@ if __name__ == "__main__":
         "synthesizer_root",
         type=Path,
         help="Path to the synthesizer training data that contains the audios and the train.txt file. "
-        "If you let everything as default, it should be <datasets_root>/SV2TTS/synthesizer/.",
+             "If you let everything as default, it should be <datasets_root>/SV2TTS/synthesizer/.",
     )
     parser.add_argument(
-        "-e", "--encoder_model_fpath", type=Path, default="saved_models/default/encoder.pt", help="Path your trained encoder model."
+        "-e", "--encoder_model_fpath", type=Path, default="saved_models/default/encoder.pt",
+        help="Path your trained encoder model."
     )
     parser.add_argument(
         "-n",
@@ -24,10 +26,16 @@ if __name__ == "__main__":
         type=int,
         default=4,
         help="Number of parallel processes. An encoder is created for each, so you may need to lower "
-        "this value on GPUs with low memory. Set it to 1 if CUDA is unhappy.",
+             "this value on GPUs with low memory. Set it to 1 if CUDA is unhappy.",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     # Preprocess the dataset
     print_args(args, parser)
     create_embeddings(**vars(args))
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(*sys.argv[1:])

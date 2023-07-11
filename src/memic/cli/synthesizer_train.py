@@ -5,19 +5,20 @@ from memic.synthesizer.hparams import hparams
 from memic.synthesizer.train import train
 from memic.utils.argutils import print_args
 
-if __name__ == "__main__":
+
+def main(*args):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "run_id",
         type=str,
         help="Name for this model. By default, training outputs will be stored to saved_models/<run_id>/. If a model state "
-        "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
-        "states and restart from scratch.",
+             "from the same run ID was previously saved, the training will restart from there. Pass -f to overwrite saved "
+             "states and restart from scratch.",
     )
     parser.add_argument(
         "syn_dir",
         type=Path,
-        help="Path to the synthesizer directory that contains the ground truth mel spectrograms, " "the wavs and the embeds.",
+        help="Path to the synthesizer directory that contains the ground truth mel spectrograms, the wavs and the embeds.",
     )
     parser.add_argument(
         "-m",
@@ -31,17 +32,19 @@ if __name__ == "__main__":
         "--save_every",
         type=int,
         default=1000,
-        help="Number of steps between updates of the model on the disk. Set to 0 to never save the " "model.",
+        help="Number of steps between updates of the model on the disk. Set to 0 to never save the model.",
     )
     parser.add_argument(
         "-b",
         "--backup_every",
         type=int,
         default=25000,
-        help="Number of steps between backups of the model. Set to 0 to never make backups of the " "model.",
+        help="Number of steps between backups of the model. Set to 0 to never make backups of the model.",
     )
-    parser.add_argument("-f", "--force_restart", action="store_true", help="Do not load any saved model and restart from scratch.")
-    parser.add_argument("--hparams", default="", help="Hyperparameter overrides as a comma-separated list of name=value pairs")
+    parser.add_argument("-f", "--force_restart", action="store_true",
+                        help="Do not load any saved model and restart from scratch.")
+    parser.add_argument("--hparams", default="",
+                        help="Hyperparameter overrides as a comma-separated list of name=value pairs")
     args = parser.parse_args()
     print_args(args, parser)
 
@@ -49,3 +52,9 @@ if __name__ == "__main__":
 
     # Run the training
     train(**vars(args))
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(*sys.argv[1:])

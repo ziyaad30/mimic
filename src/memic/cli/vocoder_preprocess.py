@@ -6,7 +6,8 @@ from memic.synthesizer.hparams import hparams
 from memic.synthesizer.synthesize import run_synthesis
 from memic.utils.argutils import print_args
 
-if __name__ == "__main__":
+
+def main(*args):
 
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
         pass
@@ -41,7 +42,7 @@ if __name__ == "__main__":
     )
     parser.add_argument("--hparams", default="", help="Hyperparameter overrides as a comma-separated list of name=value pairs")
     parser.add_argument("--cpu", action="store_true", help="If True, processing is done on CPU, even when a GPU is available.")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     print_args(args, parser)
     modified_hp = hparams.parse(args.hparams)
 
@@ -55,3 +56,9 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     run_synthesis(args.in_dir, args.out_dir, args.syn_model_fpath, modified_hp)
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(*sys.argv[1:])

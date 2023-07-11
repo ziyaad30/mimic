@@ -14,7 +14,7 @@ def main(*args):
         "-d",
         "--datasets_root",
         type=Path,
-        help="Path to the directory containing your datasets. See toolbox/__init__.py for a list of " "supported datasets.",
+        help="Path to the directory containing your datasets. See toolbox/__init__.py for a list of supported datasets.",
         default="datasets",
     )
     parser.add_argument("-m", "--models_dir", type=Path, default="saved_models", help="Directory containing all saved models")
@@ -36,4 +36,6 @@ def main(*args):
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    main(*sys.argv[1:])

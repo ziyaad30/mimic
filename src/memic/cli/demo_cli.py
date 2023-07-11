@@ -13,17 +13,23 @@ from memic.utils.argutils import print_args
 from memic.utils.default_models import ensure_default_models
 from memic.vocoder import inference as vocoder
 
-if __name__ == "__main__":
+
+def main(*args):
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-e", "--enc_model_fpath", type=Path, default="saved_models/default/encoder.pt", help="Path to a saved encoder")
+    parser.add_argument("-e", "--enc_model_fpath", type=Path, default="saved_models/default/encoder.pt",
+                        help="Path to a saved encoder")
     parser.add_argument(
-        "-s", "--syn_model_fpath", type=Path, default="saved_models/default/synthesizer.pt", help="Path to a saved synthesizer"
+        "-s", "--syn_model_fpath", type=Path, default="saved_models/default/synthesizer.pt",
+        help="Path to a saved synthesizer"
     )
-    parser.add_argument("-v", "--voc_model_fpath", type=Path, default="saved_models/default/vocoder.pt", help="Path to a saved vocoder")
-    parser.add_argument("--cpu", action="store_true", help="If True, processing is done on CPU, even when a GPU is available.")
+    parser.add_argument("-v", "--voc_model_fpath", type=Path, default="saved_models/default/vocoder.pt",
+                        help="Path to a saved vocoder")
+    parser.add_argument("--cpu", action="store_true",
+                        help="If True, processing is done on CPU, even when a GPU is available.")
     parser.add_argument("--no_sound", action="store_true", help="If True, audio won't be played.")
-    parser.add_argument("--seed", type=int, default=None, help="Optional random number seed value to make toolbox deterministic.")
-    args = parser.parse_args()
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Optional random number seed value to make toolbox deterministic.")
+    args = parser.parse_args(args)
     arg_dict = vars(args)
     print_args(args, parser)
 
@@ -88,6 +94,7 @@ if __name__ == "__main__":
     # The vocoder synthesizes one waveform at a time, but it's more efficient for long ones. We
     # can concatenate the mel spectrograms to a single one.
     mel = np.concatenate(mels, axis=1)
+
     # The vocoder can take a callback function to display the generation. More on that later. For
     # now we'll simply hide it like this:
     def no_action(*args):
@@ -116,8 +123,11 @@ if __name__ == "__main__":
     while True:
         try:
             # Get the reference audio filepath
-            message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, " "wav, m4a, flac, ...):\n"
-            in_fpath = Path(input(message).replace('"', "").replace("'", ""))
+            message = "Reference voice: enter an audio filepath of a voice to be cloned (mp3, wav, m4a, flac, ...):\n"
+            p = input(message).replace('"', "").replace("'", "")
+            if p == "q":
+                break
+            in_fpath = Path(p)
 
             ## Computing the embedding
             # First, we load the wav using the function that the speaker encoder provides. This is
@@ -197,3 +207,10 @@ if __name__ == "__main__":
         except Exception as e:
             print("Caught exception: %s" % repr(e))
             print("Restarting\n")
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(*sys.argv[1:])
+

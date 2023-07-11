@@ -4,8 +4,8 @@ from pathlib import Path
 from memic.encoder.preprocess import preprocess_librispeech, preprocess_voxceleb1, preprocess_voxceleb2
 from memic.utils.argutils import print_args
 
-if __name__ == "__main__":
 
+def main(*args):
     class MyFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
         pass
 
@@ -47,28 +47,29 @@ if __name__ == "__main__":
         "-s",
         "--skip_existing",
         action="store_true",
-        help="Whether to skip existing output files with the same name. Useful if this script was " "interrupted.",
+        help="Whether to skip existing output files with the same name. Useful if this script was interrupted.",
     )
     parser.add_argument("--no_trim", action="store_true", help="Preprocess audio without trimming silences (not recommended).")
-    args = parser.parse_args()
+    args = parser.parse_args(args)
 
     # Verify webrtcvad is available
     if not args.no_trim:
         try:
             import webrtcvad
-        except:
+        except ImportError as e:
             raise ModuleNotFoundError(
                 "Package 'webrtcvad' not found. This package enables "
                 "noise removal and is recommended. Please install and try again. If installation fails, "
                 "use --no_trim to disable this error message."
-            )
+            ) from e
     del args.no_trim
 
     # Process the arguments
     args.datasets = args.datasets.split(",")
     if not hasattr(args, "out_dir"):
         args.out_dir = args.datasets_root.joinpath("SV2TTS", "encoder")
-    assert args.datasets_root.exists()
+    if not args.datasets_root.exists():
+        args.datasets_root.mkdir()
     args.out_dir.mkdir(exist_ok=True, parents=True)
 
     # Preprocess the datasets
@@ -82,3 +83,9 @@ if __name__ == "__main__":
     for dataset in args.pop("datasets"):
         print("Preprocessing %s" % dataset)
         preprocess_func[dataset](**args)
+
+
+if __name__ == "__main__":
+    import sys
+
+    main(*sys.argv[1:])
