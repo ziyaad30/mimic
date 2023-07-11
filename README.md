@@ -1,4 +1,18 @@
-# Real-Time Voice Cloning
+# Memic
+Memic is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
+
+## Changes
+* fix some install issues for Python3.10
+* add pyproejct.toml to make installable
+* add `memic` command to run the toolbox and cli
+* use Ruff to autoreformat to flake8 standards
+* add to UI:
+  * ability to save audio to file
+  * ability to set user name
+  * ability to set recording file name
+  * ability to specify recording duration
+
+## README from CorentinJ/Real-Time-Voice-Cloning
 This repository is an implementation of [Transfer Learning from Speaker Verification to
 Multispeaker Text-To-Speech Synthesis](https://arxiv.org/pdf/1806.04558.pdf) (SV2TTS) with a vocoder that works in real-time. This was my [master's thesis](https://matheo.uliege.be/handle/2268.2/6801).
 
