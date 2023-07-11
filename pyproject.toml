@@ -1,0 +1,40 @@
+[build-system]
+requires      = ["setuptools>=64.0.0", "wheel", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "memic"
+version = "1.0.0"
+description = "Clone a voice in 5 seconds to generate arbitrary speech in real-time"
+readme = "README.md"
+
+
+authors = [
+    { name = "Corentin Jemine", email = "corentin.jemine@gmail.com"},
+    { name = "Rayhane Mama"},
+    { name = "Ollie McCarthy", email = "fatchord@tutanota.com"},
+    { name = "braindead"},
+    { name = "Torin Halsted", email = "modularizer@gmail.com" }
+]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10"
+]
+keywords = ["voice-cloning"]
+requires-python = ">=3.10"
+
+[tool.setuptools_scm]
+root = "."
+write_to = "src/memic/version.py"
+
+[project.optional-dependencies]
+dev = ["pip-tools", "pytest", "ffmpeg", "pytorch"]
+
+[project.urls]
+Homepage = "https://modularizer.github.io/memic/"
+
+[project.scripts]
+memic = "memic.cli:main"

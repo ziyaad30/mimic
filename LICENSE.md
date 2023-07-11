@@ -1,5 +1,6 @@
 MIT License
 
+Modified & original work Copyright (c) 2019 Torin Halsted (https://github.com/modularizer)
 Modified & original work Copyright (c) 2019 Corentin Jemine (https://github.com/CorentinJ)
 Original work Copyright (c) 2018 Rayhane Mama (https://github.com/Rayhane-mamah)
 Original work Copyright (c) 2019 fatchord (https://github.com/fatchord)
