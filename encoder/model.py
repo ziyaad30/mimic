@@ -1,5 +1,3 @@
-from encoder.params_model import *
-from encoder.params_data import *
 from scipy.interpolate import interp1d
 from sklearn.metrics import roc_curve
 from torch.nn.utils import clip_grad_norm_
@@ -7,6 +5,9 @@ from scipy.optimize import brentq
 from torch import nn
 import numpy as np
 import torch
+
+from .params_model import model_hidden_size, model_embedding_size, model_num_layers
+from .params_data import mel_n_channels
 
 
 class SpeakerEncoder(nn.Module):

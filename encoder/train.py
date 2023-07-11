@@ -2,11 +2,11 @@ from pathlib import Path
 
 import torch
 
-from encoder.data_objects import SpeakerVerificationDataLoader, SpeakerVerificationDataset
-from encoder.model import SpeakerEncoder
-from encoder.params_model import *
-from encoder.visualizations import Visualizations
-from utils.profiler import Profiler
+from .data_objects import SpeakerVerificationDataLoader, SpeakerVerificationDataset
+from .model import SpeakerEncoder
+from .params_model import *
+from .visualizations import Visualizations
+from ..utils.profiler import Profiler
 
 
 def sync(device: torch.device):

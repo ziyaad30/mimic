@@ -1,5 +1,6 @@
 from scipy.ndimage.morphology import binary_dilation
-from encoder.params_data import *
+from .params_data import sampling_rate, audio_norm_target_dBFS, mel_window_length, mel_window_step, \
+    mel_n_channels, vad_window_length, vad_moving_average_width, vad_max_silence_length
 from pathlib import Path
 from typing import Optional, Union
 from warnings import warn
