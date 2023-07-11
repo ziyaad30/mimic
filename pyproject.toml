@@ -1,5 +1,77 @@
+[tool.ruff]
+select = [
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "D",  # pydocstyle
+    "E",  # Error
+    "F",  # pyflakes
+    "I",  # isort
+    "ISC", # flake8-implicit-str-concat
+    "N",  # pep8-naming
+    "PGH",  # pygrep-hooks
+    "PTH", # flake8-use-pathlib
+    "Q",  # flake8-quotes
+    "S",  # bandit
+    "SIM",  # flake8-simplify
+    "TRY",  # tryceratops
+    "UP",  # pyupgrade
+    "W",  # Warning
+    "YTT", # flake8-2020
+]
+
+exclude = [
+    "migrations",
+    "__pycache__",
+    "manage.py",
+    "settings.py",
+    "env",
+    ".env",
+    "venv",
+    ".venv",
+]
+
+ignore = [
+    "B905",  # This is a flake8-bugbear warning. It warns about not using the strict mode in zip() function. The strict mode is available from Python 3.10 onwards, so this warning can be ignored until support for Python versions less than 3.10 is dropped.
+    "D100",  # This is a flake8-docstrings warning. It warns when the module does not have a docstring.
+    "D101",  # This is a flake8-docstrings warning. It warns when the class does not have a docstring.
+    "D102",  # This is a flake8-docstrings warning. It warns when the method does not have a docstring.
+    "D103",  # This is a flake8-docstrings warning. It warns when the function does not have a docstring.
+    "D104",  # This is a flake8-docstrings warning. It warns when the package does not have a docstring.
+    "D105",  # This is a flake8-docstrings warning. It warns when the magic method does not have a docstring.
+    "D106",  # This is a flake8-docstrings warning. It warns when the nested class or function does not have a docstring.
+    "D406",  # This is a flake8-docstrings warning. It warns about section name should end with a newline. It's possibly a VSCode bug, incorrectly raising for docstrings with one section.
+    "D407",  # This is a flake8-docstrings warning. It warns about missing dashed underline after section. This can cause issues with D417 parsing.
+    "D200",  # This is a flake8-docstrings warning. It warns about one-line docstring should fit on one line with quotes.
+    "D401",  # This is a flake8-docstrings warning. It warns about imperative mood usage in docstrings (e.g., use "Return" instead of "Returns").
+    "F401",  # This is a flake8 warning. It warns about module imported but unused.
+    "TRY003",  # This is a flake8-tryhard warning. It warns about specifying messages outside exception class. It's considered overly strict, especially for ValueError.
+]
+
+
+# Allow autofix for all enabled rules (when `--fix`) is provided.
+fixable = ["A", "B", "C", "D", "E", "F", "G", "I", "N", "Q", "S", "T", "W", "ANN", "ARG", "BLE", "COM", "DJ", "DTZ", "EM", "ERA", "EXE", "FBT", "ICN", "INP", "ISC", "NPY", "PD", "PGH", "PIE", "PL", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "SIM", "SLF", "TCH", "TID", "TRY", "UP", "YTT"]
+
+
+# Avoid trying to fix flake8-bugbear (`B`) violations.
+unfixable = ["B"]
+
+line-length = 120
+
+# Ignore `E402` (import violations) in all `__init__.py` files
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["E402"]
+
+
+[tool.ruff.mccabe]
+# Set max mccabe complexity to 10
+# https://en.wikipedia.org/wiki/Cyclomatic_complexity
+max-complexity = 10
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
+
 [build-system]
-requires      = ["setuptools>=64.0.0", "wheel", "setuptools_scm"]
+requires      = ["setuptools>=61.0.0", "wheel", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
 
 [project]

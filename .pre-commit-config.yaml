@@ -1,0 +1,30 @@
+repos:
+- repo: local
+  hooks:
+    - id: fix-fmt
+      name: Fix formatting
+      entry: memic fmt
+      language: system
+      files: '\.py$'
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v2.3.0
+    hooks:
+    -   id: check-yaml
+-   repo: https://github.com/psf/black
+    rev: 22.10.0
+    hooks:
+    -   id: black
+        args: [--line-length=140]
+- repo: https://github.com/charliermarsh/ruff-pre-commit
+  # Ruff version.
+  rev: 'v0.0.258'
+  hooks:
+    - id: ruff
+      args: [--config=pyproject.toml]
+- repo: local
+  hooks:
+    - id: memic-test
+      name: Run tests
+      entry: memic test
+      language: system
+      files: '\.py$'
