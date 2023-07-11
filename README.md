@@ -12,6 +12,26 @@ Memic is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/Corent
   * ability to set recording file name
   * ability to specify recording duration
 
+## Setup
+### Install with pip
+```bash
+git clone git@github.com:modularizer/memic.git
+cd memic
+pip install -e .
+pip install -r requirements.txt
+```
+
+### Test install
+```bash
+memic cli
+```
+
+### Run toolbox
+```bash
+memic toolbox
+```
+
+
 ## README from CorentinJ/Real-Time-Voice-Cloning
 This repository is an implementation of [Transfer Learning from Speaker Verification to
 Multispeaker Text-To-Speech Synthesis](https://arxiv.org/pdf/1806.04558.pdf) (SV2TTS) with a vocoder that works in real-time. This was my [master's thesis](https://matheo.uliege.be/handle/2268.2/6801).
