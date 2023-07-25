@@ -1,5 +1,5 @@
 # Mimic
-Mimic is a fork of modularizer/memic which is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
+Mimic is a fork of [modularizer/memic](https://github.com/modularizer/memic) which is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
 
 ## Changes
 * fix some install issues for Python3.10
@@ -15,8 +15,8 @@ Mimic is a fork of modularizer/memic which is a fork of [CorentinJ/Real-Time-Voi
 ## Setup
 ### Install with pip
 ```bash
-git clone git@github.com:modularizer/memic.git
-cd memic
+git clone git@github.com:ziyaad30/mimic.git
+cd mimic
 pip install -e .
 pip install -r requirements.txt
 ```
