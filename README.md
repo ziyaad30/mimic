@@ -15,7 +15,7 @@ Mimic is a fork of [modularizer/memic](https://github.com/modularizer/memic) whi
 ## Setup
 ### Install with pip
 ```bash
-git clone [git@github.com:ziyaad30/mimic.git](https://github.com/ziyaad30/mimic.git)
+git clone https://github.com/ziyaad30/mimic.git
 cd mimic
 pip install -e .
 pip install -r requirements.txt
