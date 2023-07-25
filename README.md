@@ -1,5 +1,5 @@
-# Memic
-Memic is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
+# Mimic
+Mimic is a fork of modularizer/memic which is a fork of [CorentinJ/Real-Time-Voice-Cloning](https://github.com/CorentinJ/Real-Time-Voice-Cloning)
 
 ## Changes
 * fix some install issues for Python3.10
